@@ -1,7 +1,5 @@
 /*
- * *
- *   * Copyright 2019, FleetTLC. All rights reserved
- *
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.ui.app.factory
 
@@ -137,6 +135,10 @@ class FactoryViewMvc(
 
     fun allocListEntriesViewItemViewMvc(container: ViewGroup): ListEntriesItemViewMvc {
         return ListEntriesItemViewMvcImpl(getInflater(container), container)
+    }
+
+    fun allocSubFlowItemViewMvc(container: ViewGroup): SubFlowItemViewMvc {
+        return SubFlowItemViewMvcImpl(getInflater(container), container)
     }
 
 }

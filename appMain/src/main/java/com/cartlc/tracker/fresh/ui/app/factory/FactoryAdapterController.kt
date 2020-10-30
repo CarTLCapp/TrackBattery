@@ -1,15 +1,17 @@
 /**
- * Copyright 2019, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.ui.app.factory
 
 import com.cartlc.tracker.fresh.ui.mainlist.adapter.*
 import com.cartlc.tracker.fresh.model.CarRepository
 import com.cartlc.tracker.fresh.model.msg.MessageHandler
+import com.cartlc.tracker.fresh.model.pref.PrefHelper
 
 class FactoryAdapterController(
-        val repo: CarRepository,
-        val messageHandler: MessageHandler
+        private val repo: CarRepository,
+        private val messageHandler: MessageHandler,
+        private val prefHelper: PrefHelper
 ) {
     fun allocSimpleListController(listener: SimpleListController.Listener): SimpleListController {
         return SimpleListController(listener)
@@ -33,6 +35,10 @@ class FactoryAdapterController(
 
     fun allocCheckBoxListController(listener: CheckBoxListController.Listener): CheckBoxListController {
         return CheckBoxListController(listener)
+    }
+
+    fun allocSubFlowListController(listener: SubFlowsListController.Listener): SubFlowsListController {
+        return SubFlowsListController(repo, prefHelper, listener)
     }
 
 }

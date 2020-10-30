@@ -1,5 +1,5 @@
 /**
- * Copyright 2018, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.model.core.sql
 
@@ -23,6 +23,7 @@ class SqlTableProjectAddressCombo(
 ) : TableProjectAddressCombo {
 
     companion object {
+        private val TAG = SqlTableProjectAddressCombo::class.simpleName
 
         private const val TABLE_NAME = "list_project_address_combo"
 
@@ -111,7 +112,7 @@ class SqlTableProjectAddressCombo(
         identicals.remove(projectGroup.id)
         for (other_id in identicals) {
             val entries = db.tableEntry.queryForProjectAddressCombo(other_id)
-            Timber.i("Found ${entries.size} entries with matching combo id $other_id to ${projectGroup.id}")
+            Timber.tag(TAG).i("Found ${entries.size} entries with matching combo id $other_id to ${projectGroup.id}")
             for (entry in entries) {
                 entry.projectAddressCombo = projectGroup
                 entry.uploadedMaster = false
@@ -164,9 +165,8 @@ class SqlTableProjectAddressCombo(
     override fun query(): List<DataProjectAddressCombo> {
         val list = ArrayList<DataProjectAddressCombo>()
         try {
-            val orderBy = "$KEY_LAST_USED DESC"
             val columns = arrayOf(KEY_ROWID, KEY_PROJECT_ID, KEY_ADDRESS_ID)
-            val cursor = sqlDb.query(true, TABLE_NAME, columns, null, null, null, null, orderBy, null)
+            val cursor = sqlDb.query(true, TABLE_NAME, columns, null, null, null, null, null, null)
             val idxRowId = cursor.getColumnIndex(KEY_ROWID)
             val idxProjectId = cursor.getColumnIndex(KEY_PROJECT_ID)
             val idxAddressId = cursor.getColumnIndex(KEY_ADDRESS_ID)

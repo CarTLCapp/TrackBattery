@@ -17,6 +17,7 @@ import com.cartlc.tracker.fresh.service.endpoint.DCServerRx
 import com.cartlc.tracker.fresh.ui.app.TBApplication
 import com.cartlc.tracker.fresh.ui.app.dependencyinjection.BoundFrag
 import com.cartlc.tracker.fresh.ui.buttons.ButtonsUseCase
+import com.cartlc.tracker.fresh.ui.common.rx.RxDisposables
 
 class LoginController(
         boundFrag: BoundFrag,
@@ -41,6 +42,7 @@ class LoginController(
     private var firstCodeEdit: String = ""
     private var secondaryCodeEdit: String = ""
     private var isSecondaryPromptsEnabled = false
+    private val disposables = RxDisposables()
 
     init {
         boundFrag.bindObserver(this)
@@ -86,6 +88,7 @@ class LoginController(
         repo.flowUseCase.unregisterListener(this)
         repo.actionUseCase.unregisterListener(this)
         buttonsUseCase.unregisterListener(this)
+        disposables.dispose()
     }
 
     override fun onActionChanged(action: Action) {
@@ -100,9 +103,9 @@ class LoginController(
         when (flow.stage) {
             Stage.LOGIN -> {
                 buttonsUseCase.prevVisible = false
-                buttonsUseCase.centerVisible = false
                 buttonsUseCase.centerText = messageHandler.getString(StringMessage.title_login)
                 buttonsUseCase.nextVisible = loginSuccess
+                detectShowCenter()
             }
             else -> {
             }
@@ -131,7 +134,8 @@ class LoginController(
                     }
                 }
             }
-            else -> {}
+            else -> {
+            }
         }
     }
 
@@ -143,40 +147,45 @@ class LoginController(
             null
         }
         @Suppress("UNUSED_PARAMETER")
-        dcRx.sendRegistration(firstCode, secondCode)
-                .subscribeOn(schedulerPlan.subscribeWith)
-                .observeOn(schedulerPlan.observeWith)
-                .subscribe { result: DCServerRx.Result ->
-                    if (result.errorMessage != null) {
-                        TBApplication.ShowError(result.errorMessage)
-                        buttonsUseCase.nextVisible = false
-                        viewMvc.firstTechName = ""
-                        viewMvc.secondaryTechName = ""
-                    }
-                    else if (loginSuccess) {
-                        buttonsUseCase.nextVisible = true
-                        buttonsUseCase.centerVisible = false
-                        viewMvc.firstTechName = prefHelper.techName
-                        viewMvc.secondaryTechName = prefHelper.secondaryTechName
-                        if (prefHelper.secondaryTechName.isNotBlank()) {
-                            dialogHelper.showMessage(
-                                    messageHandler.getString(StringMessage.dialog_dialog_entry_done2(
-                                            prefHelper.techName,
-                                            prefHelper.secondaryTechName
-                                    ))
-                            )
-                        } else {
-                            dialogHelper.showMessage(
-                                    messageHandler.getString(StringMessage.dialog_dialog_entry_done(prefHelper.techName))
-                            )
+        disposables.add(
+                dcRx.sendRegistration(firstCode, secondCode)
+                        .subscribeOn(schedulerPlan.subscribeWith)
+                        .observeOn(schedulerPlan.observeWith)
+                        .subscribe { result: DCServerRx.Result ->
+                            when {
+                                result.errorMessage != null -> {
+                                    TBApplication.ShowError(result.errorMessage)
+                                    buttonsUseCase.nextVisible = false
+                                    viewMvc.firstTechName = ""
+                                    viewMvc.secondaryTechName = ""
+                                }
+                                loginSuccess -> {
+                                    buttonsUseCase.nextVisible = true
+                                    buttonsUseCase.centerVisible = false
+                                    viewMvc.firstTechName = prefHelper.techName
+                                    viewMvc.secondaryTechName = prefHelper.secondaryTechName
+                                    if (prefHelper.secondaryTechName.isNotBlank()) {
+                                        dialogHelper.showMessage(
+                                                messageHandler.getString(StringMessage.dialog_dialog_entry_done2(
+                                                        prefHelper.techName,
+                                                        prefHelper.secondaryTechName
+                                                ))
+                                        )
+                                    } else {
+                                        dialogHelper.showMessage(
+                                                messageHandler.getString(StringMessage.dialog_dialog_entry_done(prefHelper.techName))
+                                        )
+                                    }
+                                    AlarmController.justLoggedIn(context)
+                                }
+                                else -> {
+                                    buttonsUseCase.nextVisible = false
+                                    viewMvc.firstTechName = ""
+                                    viewMvc.secondaryTechName = ""
+                                }
+                            }
                         }
-                        AlarmController.justLoggedIn(context)
-                    } else {
-                        buttonsUseCase.nextVisible = false
-                        viewMvc.firstTechName = ""
-                        viewMvc.secondaryTechName = ""
-                    }
-                }
+        )
     }
 
     private fun next() {
@@ -188,15 +197,13 @@ class LoginController(
     override fun onFirstTechCodeChanged(value: String) {
         firstCodeEdit = value
         viewMvc.firstTechName = ""
-        detectShowNext()
-        buttonsUseCase.centerVisible = true
+        detectShowCenter()
     }
 
     override fun onSecondaryTechCodeChanged(value: String) {
         secondaryCodeEdit = value
         viewMvc.secondaryTechName = ""
-        detectShowNext()
-        buttonsUseCase.centerVisible = true
+        detectShowCenter()
     }
 
     override fun onSecondaryCheckBoxChanged(value: Boolean) {
@@ -207,10 +214,11 @@ class LoginController(
         viewMvc.secondaryTechCode = ""
         viewMvc.secondaryTechCodeEnabled = isSecondaryPromptsEnabled
 
-        detectShowNext()
+        detectShowCenter()
     }
 
-    private fun detectShowNext() {
+    private fun detectShowCenter() {
         buttonsUseCase.centerVisible = loginValid
     }
+
 }

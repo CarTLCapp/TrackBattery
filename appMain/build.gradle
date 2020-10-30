@@ -25,8 +25,8 @@ android {
         applicationId "com.cartlc.tracker"
         minSdkVersion 21
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 64
-        versionName "3.42"
+        versionCode 66
+        versionName "3.46"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
@@ -67,14 +67,14 @@ dependencies {
 
     // Android
     implementation 'androidx.appcompat:appcompat:1.3.0-alpha02'
-    implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha06'
+    implementation 'androidx.recyclerview:recyclerview:1.2.0-beta01'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
-    implementation 'androidx.media:media:1.2.0'
-    implementation 'androidx.exifinterface:exifinterface:1.3.0'
+    implementation 'androidx.media:media:1.2.1'
+    implementation 'androidx.exifinterface:exifinterface:1.3.2'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
-    implementation 'com.google.android.material:material:1.3.0-alpha03'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'com.google.android.material:material:1.3.0-beta01'
 
     // Timber
     implementation "com.jakewharton.timber:timber:$timber_version"
@@ -111,8 +111,8 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxkotlin:2.4.0'
 
     // Test
-    testImplementation 'junit:junit:4.13'
-    testImplementation "org.mockito:mockito-core:$mockcore_version"
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation "org.mockito:mockito-core::$mockcore_version"
     testImplementation 'org.hamcrest:hamcrest-all:1.3'
     testImplementation "com.nhaarman:mockito-kotlin:$mockkot_version"
     testImplementation "com.squareup.okhttp3:mockwebserver:$mockwebserver_version"
@@ -121,7 +121,7 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.3.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    androidTestImplementation "org.mockito:mockito-core:$mockcore_version"
+    androidTestImplementation "org.mockito:mockito-core::$mockcore_version"
     androidTestImplementation "com.nhaarman:mockito-kotlin:$mockkot_version"
     androidTestImplementation "org.mockito:mockito-android:$mockcore_version"
 

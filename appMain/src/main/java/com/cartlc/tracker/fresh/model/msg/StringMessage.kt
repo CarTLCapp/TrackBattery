@@ -23,6 +23,7 @@ sealed class StringMessage {
     object title_login: StringMessage()
     object title_root_project: StringMessage()
     object title_sub_project: StringMessage()
+    object title_sub_flows: StringMessage()
     object title_company: StringMessage()
     object title_state: StringMessage()
     object title_city: StringMessage()
@@ -43,6 +44,7 @@ sealed class StringMessage {
     object title_uploaded_: StringMessage()
     object title_uploaded_done: StringMessage()
     object title_saved_: StringMessage()
+
     object truck_number_request: StringMessage()
     object truck_number_enter: StringMessage()
     object truck_number_hint: StringMessage()

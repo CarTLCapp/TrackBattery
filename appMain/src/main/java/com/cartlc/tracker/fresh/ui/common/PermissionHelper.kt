@@ -10,13 +10,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.LinkedList
-import java.util.Queue
-
 import timber.log.Timber
+import java.util.*
 
 /*
  Example call in Application class:
@@ -34,6 +29,8 @@ class PermissionHelper(
 ) {
 
     companion object {
+        private val TAG = PermissionHelper::class.simpleName
+
         private const val LOG = false
         private const val REQUEST_CODE = 111
     }
@@ -89,7 +86,7 @@ class PermissionHelper(
                 alertDialog!!.show()
                 return true
             } catch (ex: Exception) {
-                Timber.e(ex)
+                error(ex)
             }
             return false
         }
@@ -173,7 +170,7 @@ class PermissionHelper(
     }
 
     private fun addNewRequest(act: Activity, permission: String, explanationResId: Int, listener: PermissionListener?) {
-        Timber.d("addNewRequest($permission)")
+        verbose("addNewRequest($permission)")
         var token = getToken(permission)
         if (token == null) {
             token = RequestToken(act, permission, explanationResId)
@@ -195,7 +192,7 @@ class PermissionHelper(
     // Call this from the activity
     fun onHandlePermissionResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (LOG) {
-            Timber.d("handlePermissionResult got ${permissions.size}")
+            verbose("handlePermissionResult got ${permissions.size}")
         }
         when (requestCode) {
             REQUEST_CODE -> {
@@ -203,7 +200,7 @@ class PermissionHelper(
                     val permission = permissions[i]
                     val token = getToken(permission)
                     if (token == null) {
-                        Timber.e("Could not find request associated with code: $permission")
+                        error("Could not find request associated with code: $permission")
                     } else {
                         val grantResult = grantResults[i]
                         token.handlePermissionResult(grantResult)
@@ -212,7 +209,7 @@ class PermissionHelper(
                     }
                 }
             }
-            else -> Timber.d("Ignoring request code : $requestCode")
+            else -> verbose("Ignoring request code : $requestCode")
         }
         if (lastRequests.isEmpty()) {
             initiateNextRequest()
@@ -225,7 +222,7 @@ class PermissionHelper(
 
     private fun addNewRequest(token: RequestToken) {
         if (LOG) {
-            Timber.d("addNewRequest(${token.permission})")
+            verbose("addNewRequest(${token.permission})")
         }
         if (!isPosted(token)) {
             live.add(token)
@@ -251,7 +248,7 @@ class PermissionHelper(
             }
             if (missingPermissions.isNotEmpty()) {
                 isWaiting?.let { existing ->
-                    Timber.i(
+                    msg(
                             "Already have a request pending so no new request issues.\n\tActive: ${existing.permission}"
                     )
                     return
@@ -264,7 +261,7 @@ class PermissionHelper(
         } else {
             lastRequests.clear()
             if (LOG) {
-                Timber.d("initiateNextRequest(): No more requests.")
+                verbose("initiateNextRequest(): No more requests.")
             }
         }
     }
@@ -299,6 +296,18 @@ class PermissionHelper(
             }
         }
         return false
+    }
+
+    private fun msg(msg: String) {
+        Timber.tag(TAG).i(msg)
+    }
+
+    private fun verbose(msg: String) {
+        Timber.tag(TAG).d(msg)
+    }
+
+    private fun error(msg: String) {
+        Timber.tag(TAG).e(msg)
     }
 
 }

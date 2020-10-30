@@ -47,6 +47,22 @@ public class FlowElementCollection extends Model implements Comparable<FlowEleme
         return find.where().eq("flow_id", flow_id).findRowCount();
     }
 
+    public static int getSubFlowCount(long flow_id) {
+        int count = 0;
+        List<FlowElement> elements = findElementsByFlowId(flow_id);
+        for (FlowElement element : elements) {
+            if (element.getPromptType() == PromptType.SUB_FLOW_DIVIDER) {
+                count++;
+            }
+        }
+        if (count > 0) {
+            if (elements.get(0).getPromptType() != PromptType.SUB_FLOW_DIVIDER) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static List<FlowElementCollection> findByFlowId(long flow_id) {
         return find.where()
                 .eq("flow_id", flow_id)

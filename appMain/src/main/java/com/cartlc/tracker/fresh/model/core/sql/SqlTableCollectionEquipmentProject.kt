@@ -37,7 +37,6 @@ class SqlTableCollectionEquipmentProject(
     override fun removeIfGone(item: DataCollectionItem) {
         if (item.isBootstrap) {
             if (db.tableEquipment.query(item.value_id) == null) {
-                Timber.i("remove(${item.id}, $item)")
                 remove(item.id)
             }
         }

@@ -26,6 +26,7 @@ class SqlTableEntry(
 ) : TableEntry {
 
     companion object {
+        private val TAG = SqlTableEntry::class.simpleName
 
         private const val TABLE_NAME = "table_entries"
 
@@ -121,7 +122,7 @@ class SqlTableEntry(
         dbSql.execSQL(sbuf.toString())
     }
 
-    override fun queryPendingDataToUploadToMaster(): List<DataEntry> {
+    override fun queryPendingEntriesToUpload(): List<DataEntry> {
         val where = "$KEY_UPLOADED_MASTER=0"
         return query(where, null)
     }
@@ -131,13 +132,28 @@ class SqlTableEntry(
         return query(where, null)
     }
 
+    override val hasEntriesToUpload: Boolean
+        get() {
+            var count = 0
+            try {
+                val columns = arrayOf(KEY_ROWID)
+                val selection = "$KEY_UPLOADED_MASTER=0 OR $KEY_UPLOADED_AWS=0"
+                val cursor = dbSql.query(TABLE_NAME, columns, selection, null, null, null, null, null)
+                count = cursor.count
+                cursor.close()
+            } catch (ex: Exception) {
+                TBApplication.ReportError(ex, SqlTableEntry::class.java, "hasEntriesToUpload()", "db")
+            }
+            return count > 0
+        }
+
     override fun queryForProjectAddressCombo(id: Long): List<DataEntry> {
         val where = "$KEY_PROJECT_ADDRESS_COMBO_ID=?"
         val whereArgs = arrayOf(id.toString())
         return query(where, whereArgs)
     }
 
-    override fun queryServerIds(): List<DataEntry> {
+    override fun queryEmptyServerIds(): List<DataEntry> {
         val where = "$KEY_SERVER_ID=0"
         return query(where, null)
     }
@@ -369,7 +385,7 @@ class SqlTableEntry(
                 }
             }
             if (insert) {
-                dbSql.insert(TABLE_NAME, null, values)
+                entry.id = dbSql.insert(TABLE_NAME, null, values)
             }
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {
@@ -395,7 +411,7 @@ class SqlTableEntry(
             val where = "$KEY_ROWID=?"
             val whereArgs = arrayOf(entry.id.toString())
             if (dbSql.update(TABLE_NAME, values, where, whereArgs) == 0) {
-                Timber.e("SqlTableEntry.saveUploaded(): Unable to update tableEntry")
+                Timber.tag(TAG).e("SqlTableEntry.saveUploaded(): Unable to update tableEntry")
             }
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {
@@ -414,7 +430,7 @@ class SqlTableEntry(
             val where = "$KEY_ROWID=?"
             val whereArgs = arrayOf(entry.id.toString())
             if (dbSql.update(TABLE_NAME, values, where, whereArgs) == 0) {
-                Timber.e("SqlTableEntry.saveProjectAddressCombo(): Unable to update tableEntry")
+                Timber.tag(TAG).e("SqlTableEntry.saveProjectAddressCombo(): Unable to update tableEntry")
             }
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {

@@ -21,9 +21,11 @@ import timber.log.Timber
 class SqlTableEquipment(
         private val db: DatabaseTable,
         private val dbSql: SQLiteDatabase
-): TableEquipment {
+) : TableEquipment {
 
     companion object {
+        private val TAG = SqlTableEquipment::class.simpleName
+
         private const val TABLE_NAME = "list_equipment"
 
         private const val KEY_ROWID = "_id"
@@ -342,10 +344,10 @@ class SqlTableEquipment(
 
     override fun removeOrDisable(equip: DataEquipment) {
         if (db.tableCollectionEquipmentEntry.countValues(equip.id) == 0) {
-            Timber.i("remove(${equip.id}, ${equip.name})")
+            Timber.tag(TAG).i("remove(${equip.id}, ${equip.name})")
             remove(equip.id)
         } else {
-            Timber.i("disable(${equip.id}, ${equip.name})")
+            Timber.tag(TAG).i("disable(${equip.id}, ${equip.name})")
             equip.disabled = true
             update(equip)
         }
@@ -357,7 +359,7 @@ class SqlTableEquipment(
             val values = ContentValues()
             values.put(KEY_SERVER_ID, 0)
             if (dbSql.update(TABLE_NAME, values, null, null) == 0) {
-                Timber.e("SqlTableEquipment.clearUploaded(): Unable to update entries")
+                Timber.tag(TAG).e("SqlTableEquipment.clearUploaded(): Unable to update entries")
             }
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {

@@ -18,30 +18,36 @@
     <TextView
         android:id="@+id/main_title_text"
         style="@style/SetupTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/logo"
         tools:text="@string/title_login" />
 
     <TextView
         android:id="@+id/sub_title"
         style="@style/SubTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:gravity="center"
         android:paddingBottom="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/main_title_text"
         tools:text="Sub Title" />
 
     <View
         android:id="@+id/main_title_separator"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="2dp"
         android:layout_marginTop="8dp"
         android:background="@android:color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/sub_title" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

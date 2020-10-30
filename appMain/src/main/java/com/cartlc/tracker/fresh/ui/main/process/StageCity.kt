@@ -89,6 +89,7 @@ class StageCity (
                     cities.clear()
                     cities.add(city)
                 }
+                cities.sort()
             }
         }
     }

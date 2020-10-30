@@ -1,38 +1,22 @@
 /*
- * *
- *   * Copyright 2019, FleetTLC. All rights reserved
- *
+ * Copyright 2021, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.service.help
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 
 import com.google.android.gms.iid.InstanceID
 
 /**
  * Created by dug on 5/22/17.
  */
-class ServerHelper(var deviceId: String? = null) {
+object ServerHelper {
 
-    companion object {
-
-        lateinit var instance: ServerHelper
-            internal set
-
-        fun Init(ctx: Context) {
-            ServerHelper(InstanceID.getInstance(ctx).id)
-        }
-    }
-
-    init {
-        instance = this
-    }
-
-    fun hasConnection(ctx: Context): Boolean {
-        val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val ni = cm.activeNetworkInfo
-        return ni != null && ni.isConnectedOrConnecting
+    fun deviceId(ctx: Context): String {
+        return InstanceID.getInstance(ctx).id
     }
 
 }

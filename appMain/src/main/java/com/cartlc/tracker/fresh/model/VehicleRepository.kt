@@ -15,6 +15,7 @@ import com.cartlc.tracker.fresh.model.event.Action
 import com.cartlc.tracker.fresh.model.flow.ActionUseCase
 import com.cartlc.tracker.fresh.model.flow.ActionUseCaseImpl
 import com.cartlc.tracker.fresh.model.core.table.DatabaseTable
+import com.cartlc.tracker.fresh.service.endpoint.post.DCPostUseCase
 import com.cartlc.tracker.fresh.ui.app.TBApplication
 
 class VehicleRepository(
@@ -28,6 +29,7 @@ class VehicleRepository(
     val stage: MutableLiveData<VehicleStage> by lazy {
         MutableLiveData<VehicleStage>()
     }
+
     var stageValue: VehicleStage?
         get() = stage.value
         set(value) {
@@ -38,6 +40,10 @@ class VehicleRepository(
         get() {
             return dm.tableVehicleName.vehicleNames
         }
+
+    private val postUseCase: DCPostUseCase by lazy {
+        app.componentRoot.postUseCase
+    }
 
     val typeOfInspection: Array<String> = context.resources.getStringArray(R.array.type_of_inspection)
     val headLights: Array<String> = context.resources.getStringArray(R.array.head_lights)
@@ -129,7 +135,7 @@ class VehicleRepository(
     fun submit() {
         dm.tableVehicle.save(entered.vehicle)
         entered.clear()
-        app.ping()
+        postUseCase.ping()
         stageValue = VehicleStage.STAGE_1
     }
 }

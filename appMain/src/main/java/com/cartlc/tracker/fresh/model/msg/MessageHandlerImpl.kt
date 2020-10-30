@@ -29,6 +29,7 @@ class MessageHandlerImpl(
                 StringMessage.title_login -> ctx.getString(R.string.title_login)
                 StringMessage.title_root_project -> ctx.getString(R.string.title_root_project)
                 StringMessage.title_sub_project -> ctx.getString(R.string.title_sub_project)
+                StringMessage.title_sub_flows -> ctx.getString(R.string.title_sub_flows)
                 StringMessage.title_company -> ctx.getString(R.string.title_company)
                 StringMessage.title_state -> ctx.getString(R.string.title_state)
                 StringMessage.title_city -> ctx.getString(R.string.title_city)

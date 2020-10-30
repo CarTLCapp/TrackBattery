@@ -8,6 +8,7 @@ import android.app.Activity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
+import com.cartlc.tracker.fresh.model.CarRepository
 import com.cartlc.tracker.fresh.model.core.data.DataEntry
 import com.cartlc.tracker.fresh.model.core.table.DatabaseTable
 import com.cartlc.tracker.fresh.model.msg.StringMessage
@@ -98,7 +99,6 @@ class ListEntriesController(
     override fun onDelete() {
         val projectGroup = prefHelper.currentProjectGroup
         if (projectGroup != null) {
-            Timber.i("Deleting project group $projectGroup")
             db.tableProjectAddressCombo.remove(projectGroup.id)
         }
         screenNavigator.finish(MainController.RESULT_DELETE_PROJECT)
@@ -138,11 +138,22 @@ class ListEntriesController(
         entry.projectAddressCombo?.let { combo ->
             combo.project?.let { project ->
                 db.tableFlow.queryBySubProjectId(project.id.toInt())?.let { flow ->
+                    val completed = countCompleted(repo.progressInSubFlows(entry, flow.id))
                     val size = db.tableFlowElement.flowSize(flow.id)
-                    return StringMessage.note_incomplete(entry.flowProgress.toInt(), size)
+                    return StringMessage.note_incomplete(completed, size)
                 }
             }
         }
         return StringMessage.note_incomplete(entry.flowProgress.toInt())
+    }
+
+    private fun countCompleted(list: List<CarRepository.SubFlowInfo>): Int {
+        var count = 0
+        for (item in list) {
+            if (item.completed >= item.total) {
+                count++
+            }
+        }
+        return count
     }
 }

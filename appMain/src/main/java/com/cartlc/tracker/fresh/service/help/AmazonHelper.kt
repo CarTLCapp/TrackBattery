@@ -31,8 +31,10 @@ class AmazonHelper(
 ) {
 
     companion object {
+        private val TAG = AmazonHelper::class.simpleName
 
-//        private val BUCKET_NAME_DEVELOP = "fleetdev2"
+
+        //        private val BUCKET_NAME_DEVELOP = "fleetdev2"
         private const val BUCKET_NAME_RELEASE = "fleettlc"
 
         //        internal val IDENTITY_POOL_ID_DEVELOP = "us-east-2:38d2f2a2-9454-4472-9fec-9468f3700ba5"
@@ -81,7 +83,7 @@ class AmazonHelper(
             }
         }
         if (DataEntry.UPLOAD_DEBUG) {
-            Timber.e("UPLOAD DEBUG: after checking " + list.size + " entries, complete flag was $flag, with $count entries still working")
+            error("UPLOAD DEBUG: after checking " + list.size + " entries, complete flag was $flag, with $count entries still working")
         }
         return flag
     }
@@ -96,13 +98,13 @@ class AmazonHelper(
                         fileNotFound.add(result.filename)
                     }
                     BitmapResult.FILE_NAME_NULL -> {
-                        Timber.e("UPLOAD null file found")
+                        error("UPLOAD null file found")
                     }
                     BitmapResult.MEDIA_NOT_MOUNTED -> {
-                        Timber.e("UPLOAD media not mounted")
+                        error("UPLOAD media not mounted")
                     }
                     is BitmapResult.EXCEPTION -> {
-                        Timber.e("UPLOAD exception ${result.message}")
+                        error("UPLOAD exception ${result.message}")
                     }
                     BitmapResult.OK -> {
                         countUploading++
@@ -113,7 +115,7 @@ class AmazonHelper(
         if (DataEntry.UPLOAD_DEBUG) {
             if (fileNotFound.isNotEmpty()) {
                 val files = fileNotFound.joinToString(", ")
-                Timber.e("UPLOAD missing files: $files")
+                error("UPLOAD missing files: $files")
             }
         }
         return countUploading
@@ -141,7 +143,7 @@ class AmazonHelper(
                         EventBus.getDefault().post(EventRefreshProjects())
                     }
                 } else if (DataEntry.UPLOAD_DEBUG) {
-                    Timber.e("UPLOAD DEBUG: still working on picture with $state")
+                    error("UPLOAD DEBUG: still working on picture with $state")
                 }
             }
 
@@ -158,6 +160,19 @@ class AmazonHelper(
     private fun uploadComplete(entry: DataEntry, item: DataPicture): Boolean {
         db.tablePicture.setUploaded(item)
         return entry.checkPictureUploadComplete()
+    }
+
+
+    private fun msg(msg: String) {
+        Timber.tag(TAG).i(msg)
+    }
+
+    private fun verbose(msg: String) {
+        Timber.tag(TAG).d(msg)
+    }
+
+    private fun error(msg: String) {
+        Timber.tag(TAG).e(msg)
     }
 
 }

@@ -42,7 +42,7 @@ class StageFinalConfirm(
     private fun onConfirmOkay(viewMvc: MainViewMvc) {
         with(shared) {
             viewMvc.confirmUseCase?.onConfirmOkay()
-            serviceUseCase.ping()
+            postUseCase.ping()
         }
     }
 

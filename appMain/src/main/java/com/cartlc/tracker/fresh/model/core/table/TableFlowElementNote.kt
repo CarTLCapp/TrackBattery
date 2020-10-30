@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.model.core.table
 
@@ -14,7 +14,9 @@ interface TableFlowElementNote {
     fun query(flowElementId: Long): List<DataFlowElementNote>
     fun queryNotes(flowElementId: Long): List<DataNote>
     fun hasNotes(flowElementId: Long): Boolean
+    fun countNotes(flowElementId: Long): Int
     fun remove(item: DataFlowElementNote)
     fun update(item: DataFlowElementNote)
     fun toString(flowElementId: Long): String
+
 }

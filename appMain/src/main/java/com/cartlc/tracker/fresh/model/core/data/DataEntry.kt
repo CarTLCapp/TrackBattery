@@ -1,18 +1,19 @@
 /**
- * Copyright 2018, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.model.core.data
 
 import android.content.Context
-
 import com.cartlc.tracker.R
-import com.cartlc.tracker.fresh.model.misc.TruckStatus
 import com.cartlc.tracker.fresh.model.core.table.DatabaseTable
-import timber.log.Timber
-
+import com.cartlc.tracker.fresh.model.misc.TruckStatus
 import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.Date
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.List
+import kotlin.collections.emptyList
+import kotlin.collections.isNotEmpty
+import kotlin.collections.mutableListOf
 
 /**
  * Created by dug on 5/13/17.
@@ -97,6 +98,13 @@ class DataEntry(private val db: DatabaseTable) {
         return db.tableCollectionNoteEntry.query(noteCollectionId, noteId)
     }
 
+    /**
+     * Update TableCollectionNoteEntry with the value stored in the passed in note.
+     */
+    fun updateNoteValue(note: DataNote) {
+        db.tableCollectionNoteEntry.updateValue(noteCollectionId, note)
+    }
+
     // Get all the notes as indicated by the project.
     // This will also include any current edits in place as well.
     private fun pendingNotes(withPartialInstallReason: Boolean): List<DataNote> {
@@ -167,11 +175,8 @@ class DataEntry(private val db: DatabaseTable) {
             for (picture in pictures) {
                 if (picture.uploaded) {
                     files.add(picture.scaledFilename ?: "null")
-                } else {
-                    files.add("NOT UPLOADED: " + picture.scaledFilename ?: "null")
                 }
             }
-            Timber.e("UPLOAD DEBUG: " + pictures.size + " for files: " + files.joinToString(","))
         }
         for (item in pictures) {
             if (!item.uploaded) {

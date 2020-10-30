@@ -6,6 +6,7 @@
 
 package com.cartlc.tracker.fresh.model.core.data
 
+import com.cartlc.tracker.fresh.model.core.table.DatabaseTable
 import timber.log.Timber
 
 class DataFlowElement(
@@ -18,13 +19,22 @@ class DataFlowElement(
         var numImages: Short = 0
 ) {
 
+    companion object {
+        private val TAG = DataFlowElement::class.simpleName
+
+        fun hasNotes(db: DatabaseTable, flow_element_id: Long): Boolean {
+            return db.tableFlowElementNote.countNotes(flow_element_id) > 0
+        }
+    }
+
     enum class Type(val code: Char) {
         UNSET('U'),
         NONE('X'),
         TOAST('T'),
         DIALOG('D'),
         CONFIRM('C'),
-        CONFIRM_NEW('N');
+        CONFIRM_NEW('N'),
+        SUB_FLOW_DIVIDER('S');
 
         companion object {
 
@@ -34,7 +44,7 @@ class DataFlowElement(
                         return value
                     }
                 }
-                Timber.e("Unrecognized prompt type: $code")
+                Timber.tag(TAG).e("Unrecognized prompt type: $code")
                 return UNSET
             }
         }
@@ -74,4 +84,7 @@ class DataFlowElement(
     val isConfirmType: Boolean
         get() = type == Type.CONFIRM_NEW || type == Type.CONFIRM
 
+    fun hasNotes(db: DatabaseTable): Boolean {
+        return hasNotes(db, id)
+    }
 }

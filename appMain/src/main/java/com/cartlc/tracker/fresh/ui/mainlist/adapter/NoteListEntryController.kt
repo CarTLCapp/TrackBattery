@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.ui.mainlist.adapter
 
@@ -18,6 +18,7 @@ class NoteListEntryController(
     interface Listener {
         fun onEntryHintChanged(entryHint: EntryHint)
         fun onNotesChanged(items: List<DataNote>)
+        fun onNoteChanged(note: DataNote)
     }
 
     private val prefHelper = repo.prefHelper
@@ -104,6 +105,8 @@ class NoteListEntryController(
 
     private fun updateNoteValue(note: DataNote) {
         repo.db.tableNote.updateValue(note)
+        currentEditEntry?.updateNoteValue(note)
+        listener.onNoteChanged(note)
     }
 
     // endregion NoteListEntryAdapter.Listener

@@ -66,24 +66,22 @@ class MainListController(
     override var keyValue: String?
         get() = key?.let { prefHelper.getKeyValue(it) }
         set(value) {
-            key?.let {
-                prefHelper.setKeyValue(it, value)
-                for (listener in listeners) {
-                    listener.onKeyValueChanged(it, value)
-                }
+            key?.let { key_ ->
+                prefHelper.setKeyValue(key_, value)
+                listeners.forEach { it.onKeyValueChanged(key_, value) }
             }
         }
 
     override var simpleItems: List<String>
         get() = viewMvc.simpleItems
         set(value) {
-            viewMvc.adapter = MainListViewMvc.Adapter.SIMPLE
+            viewMvc.setAdapter(MainListViewMvc.Adapter.SIMPLE)
             viewMvc.simpleItems = value
             setSimpleSelected()
         }
 
     override val areNotesComplete: Boolean
-        get() = repo.isNotesComplete(viewMvc.notes)
+        get() = repo.areNotesComplete(viewMvc.notes)
 
     override val notes: List<DataNote>
         get() = viewMvc.notes
@@ -104,10 +102,13 @@ class MainListController(
         when (flow.stage) {
             Stage.CURRENT_PROJECT -> {
                 key = null
-                viewMvc.adapter = MainListViewMvc.Adapter.PROJECT
+                viewMvc.setAdapter(MainListViewMvc.Adapter.PROJECT)
             }
             Stage.EQUIPMENT -> {
-                viewMvc.adapter = MainListViewMvc.Adapter.EQUIPMENT
+                viewMvc.setAdapter(MainListViewMvc.Adapter.EQUIPMENT)
+            }
+            Stage.SUB_FLOWS -> {
+                viewMvc.setAdapter(MainListViewMvc.Adapter.SUB_FLOWS)
             }
             is Stage.CUSTOM_FLOW -> {
                 repo.currentFlowElement?.let { element ->
@@ -122,7 +123,7 @@ class MainListController(
                         }
                         else -> {
                             if (!element.hasImages && repo.db.tableFlowElementNote.hasNotes(element.id)) {
-                                viewMvc.adapter = MainListViewMvc.Adapter.NOTE_ENTRY
+                                viewMvc.setAdapter(MainListViewMvc.Adapter.NOTE_ENTRY)
                                 viewMvc.visible = true
                             } else {
                                 viewMvc.visible = false
@@ -159,9 +160,11 @@ class MainListController(
     // region MainListViewMvc.Listener
 
     override fun onEntryHintChanged(entryHint: EntryHint) {
-        for (listener in listeners) {
-            listener.onEntryHintChanged(entryHint)
-        }
+        listeners.forEach { it.onEntryHintChanged(entryHint) }
+    }
+
+    override fun onNoteChanged(note: DataNote) {
+        listeners.forEach { it.onNoteChanged(note, areNotesComplete) }
     }
 
     override fun onSimpleItemClicked(position: Int, value: String) {
@@ -169,9 +172,7 @@ class MainListController(
     }
 
     override fun onProjectGroupSelected(projectGroup: DataProjectAddressCombo) {
-        for (listener in listeners) {
-            listener.onProjectGroupSelected(projectGroup)
-        }
+        listeners.forEach { it.onProjectGroupSelected(projectGroup) }
     }
 
     override fun onRadioItemSelected(text: String) {
@@ -196,9 +197,7 @@ class MainListController(
     }
 
     private fun notifyConfirmListeners() {
-        for (listener in listeners) {
-            listener.onConfirmItemChecked(isAllChecked)
-        }
+        listeners.forEach { it.onConfirmItemChecked(isAllChecked) }
     }
 
     private val isAllChecked: Boolean
@@ -219,13 +218,17 @@ class MainListController(
         }
     }
 
+    override fun onSubFlowSelected(position: Int) {
+        listeners.forEach { it.onSubFlowSelected() }
+    }
+
     // endregion MainListViewMvc.Listener
 
     private fun setSimpleSelected() {
         keyValue?.let {
             val position = viewMvc.setSimpleSelected(it)
             if (position >= 0) {
-                viewMvc.scrollToPosition = position
+                viewMvc.scrollToPosition(position)
             }
         } ?: run {
             viewMvc.setSimpleNoneSelected()

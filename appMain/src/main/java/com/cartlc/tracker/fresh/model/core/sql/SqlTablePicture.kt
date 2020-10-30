@@ -23,6 +23,7 @@ class SqlTablePicture(
 ) : TablePicture {
 
     companion object {
+        private val TAG = SqlTablePicture::class.simpleName
 
         private const val TABLE_NAME = "picture_collection"
 
@@ -300,7 +301,7 @@ class SqlTablePicture(
                 val where = "$KEY_ROWID=?"
                 val whereArgs = arrayOf(item.id.toString())
                 if (dbSql.update(TABLE_NAME, values, where, whereArgs) == 0) {
-                    Timber.e("Mysterious failure updating picture ID ${item.id}")
+                    Timber.tag(TAG).e("Mysterious failure updating picture ID ${item.id}")
                     item.id = 0
                 }
             }

@@ -2,9 +2,12 @@ package com.cartlc.tracker.fresh.model.misc
 
 import com.cartlc.tracker.fresh.model.core.table.TableString
 import timber.log.Timber
-import java.lang.NumberFormatException
 
 class HashLongList(private val db: TableString) : HashSet<Long>() {
+
+    companion object {
+        private val TAG = HashLongList::class.simpleName
+    }
 
     constructor(db: TableString, text: String) : this(db) {
         unmash(text)
@@ -53,14 +56,14 @@ class HashLongList(private val db: TableString) : HashSet<Long>() {
         return sbuf.toString()
     }
 
-    fun unmash(text: String): HashLongList {
+    private fun unmash(text: String): HashLongList {
         clear()
         for (ele in text.split(",")) {
             if (ele.isNotBlank()) {
                 try {
                     add(ele.toLong())
                 } catch (ex: NumberFormatException) {
-                    Timber.e(ex.message)
+                    Timber.tag(TAG).e(ex)
                 }
             }
         }

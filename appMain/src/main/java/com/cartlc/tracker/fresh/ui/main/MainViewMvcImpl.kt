@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.ui.main
 
@@ -64,6 +64,8 @@ class MainViewMvcImpl(
     private val loginFragment = LoginFragment(buttonsUseCase)
     private val confirmFragment = ConfirmFinalFragment()
 
+    // region MainViewMvc.Listener
+
     override val confirmUseCase: ConfirmFinalUseCase?
         get() = confirmFragment.useCase
 
@@ -82,25 +84,31 @@ class MainViewMvcImpl(
 
     override var picturesVisible: Boolean
         get() = picturesView.visibility == View.VISIBLE
-        set(value) { picturesView.visibility = if (value) View.VISIBLE else View.GONE }
-
-    override var entryHint: MainViewMvc.EntryHint
-        get() = TODO("not implemented")
         set(value) {
-            if (value.msg.isNullOrEmpty()) {
-                listEntryHint.visibility = View.GONE
-            } else {
-                listEntryHint.visibility = View.VISIBLE
-                listEntryHint.text = value.msg
-                listEntryHint.setTextColor(ContextCompat.getColor(context, value.textColor))
-            }
+            picturesView.visibility = if (value) View.VISIBLE else View.GONE
         }
+
+    override fun setEntryHint(hint: MainViewMvc.EntryHint) {
+        if (hint.msg.isNullOrEmpty()) {
+            listEntryHint.visibility = View.GONE
+        } else {
+            listEntryHint.visibility = View.VISIBLE
+            listEntryHint.text = hint.msg
+            listEntryHint.setTextColor(ContextCompat.getColor(context, hint.textColor))
+        }
+    }
 
     override var addButtonVisible: Boolean
         get() = fabAdd?.visibility == View.VISIBLE
-        set(value) { fabAdd?.visibility = if (value) View.VISIBLE else View.GONE }
+        set(value) {
+            fabAdd?.visibility = if (value) View.VISIBLE else View.GONE
+        }
 
     override var customProgress: String?
         get() = customProgressView.text.toString()
-        set(value) { customProgressView.text = value }
+        set(value) {
+            customProgressView.text = value
+        }
+
+    // endregion MainViewMvc.Listener
 }

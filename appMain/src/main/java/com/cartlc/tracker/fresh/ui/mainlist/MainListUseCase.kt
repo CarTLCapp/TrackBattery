@@ -9,9 +9,11 @@ interface MainListUseCase : BaseObservable<MainListUseCase.Listener> {
 
     interface Listener {
         fun onEntryHintChanged(entryHint: EntryHint)
+        fun onNoteChanged(note: DataNote, areNotesComplete: Boolean)
         fun onKeyValueChanged(key: String, keyValue: String?)
         fun onProjectGroupSelected(projectGroup: DataProjectAddressCombo)
         fun onConfirmItemChecked(isAllChecked: Boolean)
+        fun onSubFlowSelected()
     }
 
     val areNotesComplete: Boolean

@@ -10,24 +10,16 @@ class FlowUseCaseImpl : BaseObservableImpl<FlowUseCase.Listener>(), FlowUseCase 
     override var curFlow: Flow = LoginFlow()
         set(value) {
             wasFromNotify = false
-            for (listener in listeners) {
-                listener.onStageChangedAboutTo(value)
-            }
+            listeners.forEach { it.onStageChangedAboutTo(value) }
             previousFlowValue = field
             field = value
-            for (listener in listeners) {
-                listener.onStageChanged(value)
-            }
+            listeners.forEach { it.onStageChanged(value) }
         }
 
     override fun notifyListeners() {
         wasFromNotify = true
-        for (listener in listeners) {
-            listener.onStageChangedAboutTo(curFlow)
-        }
-        for (listener in listeners) {
-            listener.onStageChanged(curFlow)
-        }
+        listeners.forEach { it.onStageChangedAboutTo(curFlow) }
+        listeners.forEach { it.onStageChanged(curFlow) }
     }
 
 }

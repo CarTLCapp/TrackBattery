@@ -51,7 +51,7 @@ public class FlowController extends Controller {
      * Display the list of flows.
      */
     public Result list() {
-        return ok(views.html.flow_list.render(Flow.list(), Secured.getClient(ctx())));
+        return ok(views.html.flow_list.render(Flow.listSorted(), Secured.getClient(ctx())));
     }
 
     public Result LIST() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.model.core.sql
 
@@ -21,7 +21,6 @@ class SqlTableFlow(
 ) : TableFlow {
 
     companion object {
-
         private const val TABLE_NAME = "table_flow"
 
         private const val KEY_ROWID = "_id"

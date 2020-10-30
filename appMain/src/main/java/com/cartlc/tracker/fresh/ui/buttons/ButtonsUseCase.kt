@@ -32,7 +32,6 @@ interface ButtonsUseCase : BaseObservable<ButtonsUseCase.Listener> {
     // TODO: These elements will eventually be superseded
     fun skip()
     fun back()
-    fun prev()
     fun next()
     fun center()
 }

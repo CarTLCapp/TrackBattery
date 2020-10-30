@@ -17,14 +17,20 @@ class AlarmController(
 ) {
 
     companion object {
+        private val TAG = AlarmController::class.simpleName
+
         private const val DEBUG = false
+
         private val CHECK_ACTIVITY_TRIGGER_MINUTES = if (DEBUG) 2 else 60
         private val CHECK_ACTIVITY_TRIGGER = TimeUnit.MINUTES.toMillis(CHECK_ACTIVITY_TRIGGER_MINUTES.toLong())
         private val CHECK_ACTIVITY_TRIGGER_RETRY = CHECK_ACTIVITY_TRIGGER
+
         private val JUST_LOGGED_IN_TRIGGER = if (DEBUG) TimeUnit.MINUTES.toMillis(2) else TimeUnit.HOURS.toMillis(24)
 
+        private const val ACTION_LOGOUT = "logout"
+
         fun justLoggedIn(context: Context) {
-            AlarmReceiver.scheduleIn(context, JUST_LOGGED_IN_TRIGGER)
+            AlarmReceiver.scheduleIn(context, ACTION_LOGOUT, JUST_LOGGED_IN_TRIGGER)
         }
     }
 
@@ -38,17 +44,21 @@ class AlarmController(
             return diff < CHECK_ACTIVITY_TRIGGER
         }
 
-    fun checkAutoLogout() {
-        if (!hasHadRecentActivity) {
-            clearLogin()
-            repo.curFlowValue = LoginFlow()
+    fun onAction(action: String?) {
+        if (action == ACTION_LOGOUT) {
+            if (!hasHadRecentActivity) {
+                clearLogin()
+                repo.curFlowValue = LoginFlow()
+            } else {
+                AlarmReceiver.scheduleIn(context, ACTION_LOGOUT, CHECK_ACTIVITY_TRIGGER_RETRY)
+            }
         } else {
-            AlarmReceiver.scheduleIn(context, CHECK_ACTIVITY_TRIGGER_RETRY)
+            Timber.tag(TAG).e("Unrecognized action received: $action")
         }
     }
 
     private fun clearLogin() {
-        Timber.i("LOGIN CLEARED")
+        Timber.tag(TAG).i("LOGIN CLEARED")
         prefHelper.firstTechCode = null
         prefHelper.techFirstName = null
         prefHelper.techLastName = null

@@ -1,3 +1,6 @@
+/**
+ * Copyright 2020, FleetTLC. All rights reserved
+ */
 package com.cartlc.tracker.fresh.ui.mainlist
 
 import android.view.LayoutInflater
@@ -11,11 +14,11 @@ import com.cartlc.tracker.R
 import com.cartlc.tracker.fresh.model.core.data.DataEquipment
 import com.cartlc.tracker.fresh.model.core.data.DataNote
 import com.cartlc.tracker.fresh.model.core.data.DataProjectAddressCombo
+import com.cartlc.tracker.fresh.model.misc.EntryHint
 import com.cartlc.tracker.fresh.ui.app.factory.FactoryAdapterController
 import com.cartlc.tracker.fresh.ui.app.factory.FactoryViewMvc
 import com.cartlc.tracker.fresh.ui.common.viewmvc.ObservableViewMvcImpl
 import com.cartlc.tracker.fresh.ui.mainlist.adapter.*
-import com.cartlc.tracker.fresh.model.misc.EntryHint
 
 class MainListViewMvcImpl(
         inflater: LayoutInflater,
@@ -29,7 +32,8 @@ class MainListViewMvcImpl(
         EquipmentSelectController.Listener,
         RadioListController.Listener,
         NoteListEntryController.Listener,
-        CheckBoxListController.Listener {
+        CheckBoxListController.Listener,
+        SubFlowsListController.Listener {
 
     override val rootView: View = inflater.inflate(R.layout.frame_main_list, container, false) as ViewGroup
 
@@ -47,6 +51,8 @@ class MainListViewMvcImpl(
     private val noteListEntryAdapter = NoteListEntryAdapter(factoryViewMvc, noteListEntryController)
     private val checkBoxListController = factoryAdapterController.allocCheckBoxListController(this)
     private val checkBoxListAdapter = CheckBoxListAdapter(factoryViewMvc, checkBoxListController)
+    private val subFlowListController = factoryAdapterController.allocSubFlowListController(this)
+    private val subFlowListAdapter = SubFlowsListAdapter(factoryViewMvc, subFlowListController)
 
     init {
         val linearLayoutManager = LinearLayoutManager(mainList.context)
@@ -96,25 +102,24 @@ class MainListViewMvcImpl(
             checkBoxListController.list = value
         }
 
-    override var adapter: MainListViewMvc.Adapter
-        get() = TODO("not implemented")
-        set(value) {
-            visible = true
-            mainList.adapter = when (value) {
-                MainListViewMvc.Adapter.SIMPLE -> simpleListAdapter
-                MainListViewMvc.Adapter.PROJECT -> projectGroupAdapter
-                MainListViewMvc.Adapter.EQUIPMENT -> equipmentSelectAdapter
-                MainListViewMvc.Adapter.RADIO -> radioAdapter
-                MainListViewMvc.Adapter.NOTE_ENTRY -> noteListEntryAdapter
-                MainListViewMvc.Adapter.CHECK_BOX -> checkBoxListAdapter
-            }
-            when (value) {
-                MainListViewMvc.Adapter.PROJECT -> projectGroupController.onProjectDataChanged()
-                MainListViewMvc.Adapter.EQUIPMENT -> equipmentSelectController.onEquipmentDataChanged()
-                MainListViewMvc.Adapter.NOTE_ENTRY -> noteListEntryController.onNoteDataChanged()
-                else -> { }
-            }
+    override fun setAdapter(adapter: MainListViewMvc.Adapter) {
+        visible = true
+        mainList.adapter = when (adapter) {
+            MainListViewMvc.Adapter.SIMPLE -> simpleListAdapter
+            MainListViewMvc.Adapter.PROJECT -> projectGroupAdapter
+            MainListViewMvc.Adapter.EQUIPMENT -> equipmentSelectAdapter
+            MainListViewMvc.Adapter.SUB_FLOWS -> subFlowListAdapter
+            MainListViewMvc.Adapter.RADIO -> radioAdapter
+            MainListViewMvc.Adapter.NOTE_ENTRY -> noteListEntryAdapter
+            MainListViewMvc.Adapter.CHECK_BOX -> checkBoxListAdapter
         }
+        when (adapter) {
+            MainListViewMvc.Adapter.PROJECT -> projectGroupController.onProjectDataChanged()
+            MainListViewMvc.Adapter.EQUIPMENT -> equipmentSelectController.onEquipmentDataChanged()
+            MainListViewMvc.Adapter.NOTE_ENTRY -> noteListEntryController.onNoteDataChanged()
+            MainListViewMvc.Adapter.SUB_FLOWS -> subFlowListController.onDataChanged()
+        }
+    }
 
     override val numNotes: Int
         get() = noteListEntryController.numNotes
@@ -130,9 +135,9 @@ class MainListViewMvcImpl(
         return simpleListAdapter.setSelected(value)
     }
 
-    override var scrollToPosition: Int
-        get() = TODO("not implemented")
-        set(value) { mainList.scrollToPosition(value) }
+    override fun scrollToPosition(position: Int) {
+        mainList.scrollToPosition(position)
+    }
 
     // endregion MainListViewMvc
 
@@ -140,12 +145,12 @@ class MainListViewMvcImpl(
 
     override var simpleSelectedPostion: Int
         get() = simpleListAdapter.selectedPos
-        set(value) { simpleListAdapter.selectedPos = value }
+        set(value) {
+            simpleListAdapter.selectedPos = value
+        }
 
     override fun onSimpleItemClicked(position: Int, text: String) {
-        for (listener in listeners) {
-            listener.onSimpleItemClicked(position, text)
-        }
+        listeners.forEach { it.onSimpleItemClicked(position, text) }
     }
 
     // endregion SimpleListController.Listener
@@ -157,9 +162,7 @@ class MainListViewMvcImpl(
     }
 
     override fun onProjectGroupSelected(projectGroup: DataProjectAddressCombo) {
-        for (listener in listeners) {
-            listener.onProjectGroupSelected(projectGroup)
-        }
+        listeners.forEach { it.onProjectGroupSelected(projectGroup) }
     }
 
     // endregion ProjectGroupController.Listener
@@ -175,9 +178,7 @@ class MainListViewMvcImpl(
     // region RadioListController.Listener
 
     override fun onRadioItemSelected(text: String) {
-        for (listener in listeners) {
-            listener.onRadioItemSelected(text)
-        }
+        listeners.forEach { it.onRadioItemSelected(text) }
     }
 
     override fun onRadioRefreshNeeded() {
@@ -193,9 +194,7 @@ class MainListViewMvcImpl(
     }
 
     override fun onCheckBoxItemChanged(position: Int, item: String, isChecked: Boolean) {
-        for (listener in listeners) {
-            listener.onCheckBoxItemChanged(position, item, isChecked)
-        }
+        listeners.forEach { it.onCheckBoxItemChanged(position, item, isChecked) }
     }
 
     override fun isChecked(position: Int): Boolean {
@@ -212,14 +211,26 @@ class MainListViewMvcImpl(
     // region NoteListEntryController.Listener
 
     override fun onEntryHintChanged(entryHint: EntryHint) {
-        for (listener in listeners) {
-            listener.onEntryHintChanged(entryHint)
-        }
+        listeners.forEach { it.onEntryHintChanged(entryHint) }
     }
 
     override fun onNotesChanged(items: List<DataNote>) {
         noteListEntryAdapter.items = items
     }
 
+    override fun onNoteChanged(note: DataNote) {
+        listeners.forEach { it.onNoteChanged(note) }
+    }
+
     // endregion NoteListEntryController.Listener
+
+    // region SubFlowsListController.Listener
+
+    override fun onSubFlowSelected(position: Int) {
+        subFlowListAdapter.notifyDataSetChanged()
+        listeners.forEach { it.onSubFlowSelected(position) }
+    }
+
+    // endregion SubFlowsListController.Listener
+
 }

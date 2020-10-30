@@ -206,10 +206,6 @@ open class ButtonsController(
         }
     }
 
-    override fun prev() {
-        dispatch(Button.BTN_PREV)
-    }
-
     override fun next() {
         dispatch(Button.BTN_NEXT)
     }

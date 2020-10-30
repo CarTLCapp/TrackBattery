@@ -11,6 +11,14 @@ import timber.log.Timber
  */
 class DataProjectAddressCombo : Comparable<DataProjectAddressCombo> {
 
+    companion object {
+        private val TAG = DataProjectAddressCombo::class.simpleName
+
+        fun sort(list: List<DataProjectAddressCombo>): List<DataProjectAddressCombo> {
+            return list.toMutableList().sortedBy { it.projectDashName}
+        }
+    }
+
     constructor(db: DatabaseTable, projectNameId: Long, addressId: Long) {
         this.db = db
         this.projectNameId = projectNameId
@@ -65,7 +73,7 @@ class DataProjectAddressCombo : Comparable<DataProjectAddressCombo> {
             if (mAddress == null) {
                 mAddress = db.tableAddress.query(addressId)
                 if (mAddress == null) {
-                    Timber.e("Could not find address ID=$addressId")
+                    Timber.tag(TAG).e("Could not find address ID=$addressId")
                 }
             }
             return mAddress

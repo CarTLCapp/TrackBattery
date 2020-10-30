@@ -97,10 +97,14 @@ class SqlTableFlowElementNote(
     }
 
     override fun hasNotes(flowElementId: Long): Boolean {
+        return countNotes(flowElementId) > 0
+    }
+
+    override fun countNotes(flowElementId: Long): Int {
         val selection = "$KEY_FLOW_ELEMENT_ID=?"
         val selectionArgs = arrayOf(flowElementId.toString())
         val cursor = dbSql.query(TABLE_NAME, null, selection, selectionArgs, null, null, null, null)
-        val count = cursor.count > 0
+        val count = cursor.count
         cursor.close()
         return count
     }

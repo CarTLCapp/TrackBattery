@@ -7,8 +7,10 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <!-- InstaBug: -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -79,11 +81,18 @@
 
         <service
             android:name=".fresh.service.endpoint.DCService"
-            android:exported="false">
-        </service>
+            android:label="Fleet TLC Service"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+
         <service
             android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
             android:enabled="true"/>
+
+        <service
+            android:name=".fresh.service.endpoint.post.DCPostService"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
+
         <receiver android:name=".fresh.service.alarm.AlarmReceiver" />
 
     </application>

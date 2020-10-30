@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.ui.main.process
 
@@ -94,14 +94,15 @@ class StageStreet(
                     streets.clear()
                     streets.addAll(reduced)
                 }
+                streets.sort()
             }
         }
     }
 
-    fun saveAdd(): Boolean {
+    fun saveAdd(isNext: Boolean): Boolean {
         with (shared) {
             prefHelper.street = entrySimpleUseCase.entryTextValue ?: ""
-            return prefHelper.street?.isNotBlank() ?: false
+            return prefHelper.street?.isNotBlank() ?: run { !isNext }
         }
     }
 }

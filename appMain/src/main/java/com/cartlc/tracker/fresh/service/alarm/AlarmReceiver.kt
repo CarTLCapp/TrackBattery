@@ -10,16 +10,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.cartlc.tracker.fresh.ui.app.TBApplication
-import timber.log.Timber
-import java.text.SimpleDateFormat
 
 class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
 
-        fun scheduleIn(context: Context, afterMillis: Long) {
+        fun scheduleIn(context: Context, action: String, afterMillis: Long) {
             val alarmMgr = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, AlarmReceiver::class.java)
+            intent.action = action
             val alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
             alarmMgr.cancel(alarmIntent)
             val alertAt = System.currentTimeMillis()+afterMillis
@@ -31,7 +30,7 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val componentRoot = (context.applicationContext as TBApplication).componentRoot
         val alarmController = componentRoot.alarmController
-        alarmController.checkAutoLogout()
+        alarmController.onAction(intent.action)
     }
 
 }

@@ -32,7 +32,7 @@ class ProjectGroupListController(
     override val itemCount: Int
         get() = filteredProjectGroups.size
     private val projectGroups: List<DataProjectAddressCombo>
-        get() = repo.db.tableProjectAddressCombo.query()
+        get() = DataProjectAddressCombo.sort(repo.db.tableProjectAddressCombo.query())
 
     override fun onBindViewHolder(viewMvc: ProjectGroupItemViewMvc, position: Int) {
         val projectGroup = filteredProjectGroups[position]

@@ -9,6 +9,7 @@ import android.net.Uri
 
 import com.cartlc.tracker.fresh.ui.app.TBApplication
 import com.cartlc.tracker.fresh.model.core.data.DataZipCode
+import com.cartlc.tracker.fresh.model.core.sql.SqlTableTruck
 import com.cartlc.tracker.fresh.model.core.table.DatabaseTable
 
 import org.json.JSONArray
@@ -28,6 +29,11 @@ import timber.log.Timber
 class DCZip(
         private val db: DatabaseTable
 ) : DCPost() {
+
+    companion object {
+        internal val AUTHORITY = "maps.googleapis.com"
+        private val TAG = DCZip::class.simpleName
+    }
 
     internal enum class ObjectType {
         IGNORED,
@@ -94,7 +100,7 @@ class DCZip(
             if (data.isValid) {
                 db.tableZipCode.add(data)
             } else {
-                Timber.e("Invalid zipcode response: $result")
+                Timber.tag(TAG).e("Invalid zipcode response: $result")
             }
         } catch (ex: Exception) {
             TBApplication.ReportError(ex, DCZip::class.java, "findZipCode()", zipcode)
@@ -109,7 +115,4 @@ class DCZip(
         return result
     }
 
-    companion object {
-        internal val AUTHORITY = "maps.googleapis.com"
-    }
 }

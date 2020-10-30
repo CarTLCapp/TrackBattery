@@ -1,12 +1,9 @@
 /*
- * *
- *   * Copyright 2019, FleetTLC. All rights reserved
- *
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 
 package com.cartlc.tracker.fresh.model
 
-import android.os.Looper
 import androidx.lifecycle.MutableLiveData
 import com.cartlc.tracker.fresh.model.core.data.*
 import com.cartlc.tracker.fresh.model.event.Action
@@ -21,6 +18,11 @@ class CarRepository(
         val prefHelper: PrefHelper,
         val flowUseCase: FlowUseCase
 ) {
+
+    companion object {
+        private const val REASONABLE = 16
+    }
+
     val isDevelopment: Boolean
         get() = prefHelper.isDevelopment
 
@@ -38,12 +40,12 @@ class CarRepository(
     fun onPreviousFlow() {
         flowUseCase.previousFlowValue?.let {
             if (it.stage == Stage.LOGIN) {
-                computeCurStage()
+                computeCurStageLight()
             } else {
                 curFlowValue = it
             }
         } ?: run {
-            computeCurStage()
+            computeCurStageLight()
         }
     }
 
@@ -73,29 +75,10 @@ class CarRepository(
 
     // endregion Action
 
-    init {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            curFlowValue = LoginFlow()
-        }
-    }
-
-    val hasInsectingList: Boolean
+    val hasVehicleNameList: Boolean
         get() {
             return db.tableVehicleName.vehicleNames.isNotEmpty()
         }
-
-//    fun checkProjectErrors(): Boolean {
-//        val entries = db.tableProjectAddressCombo.query()
-//        for (combo in entries) {
-//            if (!combo.hasValidState) {
-//                val address = combo.fix()
-//                if (address != null) {
-//                    db.tableAddress.update(address)
-//                }
-//            }
-//        }
-//        return false
-//    }
 
     fun checkEntryErrors(): DataEntry? {
         val entries = db.tableEntry.query()
@@ -115,12 +98,8 @@ class CarRepository(
     /**
      * Add a new saved entry to the database.
      */
-    fun store(entry: DataEntry) {
-        if (db.tableEntry.updateOrInsert(entry)) {
-            prefHelper.incNextEquipmentCollectionID()
-            prefHelper.incNextPictureCollectionID()
-            prefHelper.incNextNoteCollectionID()
-        }
+    fun store(entry: DataEntry): Boolean {
+        return db.tableEntry.updateOrInsert(entry)
     }
 
     fun onCompanyChanged() {
@@ -133,9 +112,13 @@ class CarRepository(
     }
 
     fun setIncomplete(entry: DataEntry) {
-        entry.isComplete = false
         currentFlowElement?.let { element ->
-            entry.flowProgress = (db.tableFlowElement.progress(element.id)?.first ?: 0).toShort()
+            entry.isComplete = db.tableFlowElement.queryFlowId(element.id)?.let { flowId -> isComplete(entry, flowId) }
+                    ?: false
+            entry.flowProgress = (db.tableFlowElement.progressInSubFlow(element.id)?.first
+                    ?: 0).toShort()
+        } ?: run {
+            entry.isComplete = false
         }
     }
 
@@ -143,17 +126,46 @@ class CarRepository(
 
     // region COMPUTE
 
-    fun computeCurStage() {
+    fun computeCurStageLight() {
+        when {
+            prefHelper.firstTechCode.isNullOrBlank() -> {
+                curFlowValue = LoginFlow()
+            }
+            db.tableProjects.query().isEmpty() -> {
+                when {
+                    prefHelper.projectRootName.isNullOrBlank() -> curFlowValue = RootProjectFlow()
+                    prefHelper.company.isNullOrBlank() -> {
+                        curFlowValue = if (db.tableAddress.count > 0) {
+                            CompanyFlow()
+                        } else {
+                            RootProjectFlow()
+                        }
+                    }
+                    prefHelper.state.isNullOrBlank() -> curFlowValue = StateFlow()
+                    prefHelper.city.isNullOrBlank() -> curFlowValue = CityFlow()
+                    prefHelper.street.isNullOrBlank() -> curFlowValue = StreetFlow()
+                    else -> {
+                        curFlowValue = CurrentProjectFlow()
+                    }
+                }
+            }
+            else -> {
+                curFlowValue = CurrentProjectFlow()
+            }
+        }
+    }
+
+    fun computeCurStageDeep() {
         if (prefHelper.firstTechCode.isNullOrBlank()) {
             curFlowValue = LoginFlow()
         } else if (db.tableProjects.query().isEmpty()) {
             when {
                 prefHelper.projectRootName.isNullOrBlank() -> curFlowValue = RootProjectFlow()
                 prefHelper.company.isNullOrBlank() -> {
-                    if (db.tableAddress.count > 0) {
-                        curFlowValue = CompanyFlow()
+                    curFlowValue = if (db.tableAddress.count > 0) {
+                        CompanyFlow()
                     } else {
-                        curFlowValue = RootProjectFlow()
+                        RootProjectFlow()
                     }
                 }
                 prefHelper.state.isNullOrBlank() -> curFlowValue = StateFlow()
@@ -191,26 +203,16 @@ class CarRepository(
         }
     }
 
-    // TODO: TRANSFORM THIS
-//    private fun computeNoteItems(): List<DataNote> {
-//        val currentEditEntry: DataEntry? = prefHelper.currentEditEntry
-//        val currentProjectGroup: DataProjectAddressCombo? = prefHelper.currentProjectGroup
-//        var items = mutableListOf<DataNote>()
-//        if (currentEditEntry != null) {
-//            items = currentEditEntry.notesAllWithValuesOverlaid.toMutableList()
-//        } else if (currentProjectGroup != null) {
-//            items = db.tableCollectionNoteProject.getNotes(currentProjectGroup.projectNameId).toMutableList()
-//        }
-//        pushToBottom(items, "Other")
-//        return items
-//    }
-
-    fun isNotesComplete(items: List<DataNote>): Boolean {
+    fun areNotesComplete(items: List<DataNote>): Boolean {
         for (note in items) {
             if (note.numDigits > 0) {
                 note.value?.let { value ->
                     if (value.length < note.numDigits.toInt()) {
-                        return false
+                        if (note.numDigits < REASONABLE) {
+                            return false
+                        } else if (note.value.isNullOrEmpty()) {
+                            return false
+                        }
                     }
                 } ?: return false
             } else if (note.value.isNullOrEmpty()) {
@@ -230,27 +232,46 @@ class CarRepository(
     val currentFlowElementId: Long?
         get() {
             val stage = curFlowValue.stage
-            if (stage is Stage.CUSTOM_FLOW) {
-                return when {
-                    stage.isFirstElement -> firstFlowElementId
-                    stage.isLastElement -> lastFlowElementId
-                    else -> stage.flowElementId
+            return when (stage) {
+                is Stage.CUSTOM_FLOW -> {
+                    when {
+                        stage.isFirstElement -> firstFlowElementId
+                        stage.isLastElement -> lastFlowElementId
+                        else -> stage.flowElementId
+                    }
+                }
+                is Stage.SUB_FLOWS -> {
+                    firstFlowElementId
+                }
+                else -> {
+                    null
                 }
             }
-            return null
         }
+
+    val isCurrentFlowEntryComplete: Boolean
+        get() = currentFlowElement?.flowId?.let { flowId ->
+            prefHelper.currentEditEntry?.let { entry -> isComplete(entry, flowId) }
+        } ?: false
 
     private val firstFlowElementId: Long?
         get() {
             prefHelper.currentProjectGroup?.let { combo ->
                 combo.project?.let { project ->
                     db.tableFlow.queryBySubProjectId(project.id.toInt())?.let { flow ->
-                        return db.tableFlowElement.first(flow.id)?.let { it }
+                        return subFlowSelectedElementId?.let { selectedFlowElementId ->
+                            db.tableFlowElement.firstOfSubFlow(flow.id, selectedFlowElementId)?.let { it }
+                        } ?: run {
+                            db.tableFlowElement.first(flow.id)?.let { it }
+                        }
                     }
                 }
             }
             return null
         }
+
+    private val subFlowSelectedElementId: Long?
+        get() = prefHelper.subFlowSelectedElementId
 
     private val lastFlowElementId: Long?
         get() {
@@ -289,41 +310,140 @@ class CarRepository(
             var progress = 0
             while (progress < lastProgressMade) {
                 db.tableFlowElement.query(elementId)?.let { element ->
-                    val stage = Stage.CUSTOM_FLOW(element.id)
-                    if (element.hasImages) {
-                        val currentNumPictures = db.tablePicture.countPictures(currentEntry.pictureCollectionId, stage)
-                        if (currentNumPictures < element.numImages) {
-                            return element.id
-                        }
-                    }
-                    val hasNotes = db.tableFlowElementNote.hasNotes(element.id)
-                    if (hasNotes) {
-                        when (element.type) {
-                            DataFlowElement.Type.NONE -> {
-                                val notes = db.noteHelper.getNotesFromCurrentFlowElementId(element.id)
-                                val notesWithValues = currentEntry.overlayNoteValues(notes)
-                                if (!isNotesComplete(notesWithValues)) {
-                                    return element.id
-                                }
-                            }
-                            else -> {
-                                if (element.hasImages) {
-                                    val notes = db.noteHelper.getNotesOverlaidFrom(element.id, currentEntry)
-                                    if (notes.isNotEmpty()) {
-                                        if (!isNotesComplete(notes)) {
-                                            return element.id
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    if (!isEntryComplete(currentEntry, element)) {
+                        return element.id
                     }
                 }
                 elementId = db.tableFlowElement.next(elementId) ?: return elementId
-                progress = db.tableFlowElement.progress(elementId)?.first ?: return elementId
+                progress = db.tableFlowElement.progressInSubFlow(elementId)?.first
+                        ?: return elementId
             }
             return elementId
         }
 
+    private fun isEntryComplete(entry: DataEntry, element: DataFlowElement): Boolean {
+        val stage = Stage.CUSTOM_FLOW(element.id)
+        if (element.hasImages) {
+            val currentNumPictures = db.tablePicture.countPictures(entry.pictureCollectionId, stage)
+            if (currentNumPictures < element.numImages) {
+                return false
+            }
+        }
+        if (!areNotesComplete(entry, element)) {
+            return false
+        }
+        if (element.isConfirmType) {
+            val items = db.tableFlowElement.queryConfirmBatch(element.flowId, element.id)
+            for (item in items) {
+                if (!prefHelper.getConfirmValue(item.id)) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    fun areNotesComplete(element: DataFlowElement): Boolean {
+        return areNotesComplete(prefHelper.currentEditEntry, element)
+    }
+
+    private fun areNotesComplete(entry: DataEntry?, element: DataFlowElement): Boolean {
+        val hasNotes = db.tableFlowElementNote.hasNotes(element.id)
+        return if (hasNotes) {
+            when (element.type) {
+                DataFlowElement.Type.NONE -> {
+                    val notes = db.noteHelper.getNotesFromCurrentFlowElementId(element.id)
+                    entry?.let {
+                        val notesWithValues = entry.overlayNoteValues(notes)
+                        if (!areNotesComplete(notesWithValues)) {
+                            return false
+                        }
+                    } ?: run {
+                        if (notes.isNotEmpty()) {
+                            if (!areNotesComplete(notes)) {
+                                return false
+                            }
+                        }
+                    }
+                }
+                else -> {
+                    val notes = db.noteHelper.getNotesOverlaidFrom(element.id, entry)
+                    if (notes.isNotEmpty()) {
+                        if (!areNotesComplete(notes)) {
+                            return false
+                        }
+                    }
+                }
+            }
+            true
+        } else true
+    }
+
     // endregion flow element support
+
+    // region Flow Support
+
+    fun isComplete(entry: DataEntry, flowId: Long): Boolean {
+        val items = progressInSubFlows(entry, flowId)
+        for (item in items) {
+            if (item.completed < item.total) {
+                return false
+            }
+        }
+        return true
+    }
+
+    data class SubFlowInfo(
+            val flowElementId: Long,
+            val title: String,
+            val completed: Int,
+            val total: Int
+    )
+
+    fun progressInSubFlows(entry: DataEntry, flowId: Long): List<SubFlowInfo> {
+        val items = mutableListOf<SubFlowInfo>()
+        val subFlows = db.tableFlowElement.querySubFlows(flowId)
+        for (subFlowList in subFlows) {
+            val item = subFlowList[0]
+            val title = item.prompt ?: ""
+            val completed = countCompleted(entry, subFlowList)
+            val total = countTotal(subFlowList)
+            items.add(SubFlowInfo(item.id, title, completed, total))
+        }
+        return items
+    }
+
+    private fun countCompleted(entry: DataEntry, list: List<DataFlowElement>): Int {
+        var count = 0
+        var wasConfirm = false
+        for (element in list) {
+            if (element.type == DataFlowElement.Type.SUB_FLOW_DIVIDER) {
+                continue
+            }
+            if (wasConfirm && element.type == DataFlowElement.Type.CONFIRM) {
+                continue
+            }
+            if (element.type == DataFlowElement.Type.DIALOG || element.type == DataFlowElement.Type.TOAST) {
+                if (element.numImages == 0.toShort() && !element.hasNotes(db)) {
+                    continue // Ignore
+                }
+            }
+            wasConfirm = element.type == DataFlowElement.Type.CONFIRM_NEW || element.type == DataFlowElement.Type.CONFIRM
+            if (isEntryComplete(entry, element)) {
+                count++
+            }
+        }
+        return count
+    }
+
+    private fun countTotal(list: List<DataFlowElement>): Int {
+        if (list.isEmpty()) {
+            return 0
+        }
+        val element = list[0]
+        return db.tableFlowElement.subFlowSize(element.flowId, element.id)
+    }
+
+    // endregion Flow Suppoer
+
 }

@@ -93,7 +93,7 @@ class TestDCPing {
 
     private fun initBasic() {
         Mockito.`when`(db.tableEntry).thenReturn(tableEntry)
-        Mockito.`when`(tableEntry.queryPendingDataToUploadToMaster()).thenReturn(emptyList())
+        Mockito.`when`(tableEntry.queryPendingEntriesToUpload()).thenReturn(emptyList())
         Mockito.`when`(db.tablePicture).thenReturn(tablePictureCollection)
         Mockito.`when`(db.tableCrash).thenReturn(tableCrash)
         Mockito.`when`(tableCrash.queryNeedsUploading()).thenReturn(emptyList())

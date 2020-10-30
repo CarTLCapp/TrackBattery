@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.ui.main.process
 
@@ -9,7 +9,6 @@ import com.cartlc.tracker.fresh.model.core.data.DataNote
 import com.cartlc.tracker.fresh.model.flow.CustomFlow
 import com.cartlc.tracker.fresh.ui.main.MainController
 import com.cartlc.tracker.fresh.model.msg.StringMessage
-import timber.log.Timber
 
 class StageCustomFlow(
         shared: MainController.Shared,
@@ -18,9 +17,18 @@ class StageCustomFlow(
 
     private var showingDialog = 0L
 
+    private val isFlowComplete: Boolean
+        get() = with(shared) { repo.isCurrentFlowEntryComplete }
+
     fun process() {
         with(shared) {
-            repo.currentFlowElement?.let { element -> process(element) } ?: run {
+            repo.currentFlowElement?.let { element ->
+                if (element.type == Type.SUB_FLOW_DIVIDER) {
+                    buttonsUseCase.skip()
+                } else {
+                    process(element)
+                }
+            } ?: run {
                 buttonsUseCase.skip()
             }
         }
@@ -53,10 +61,10 @@ class StageCustomFlow(
                         taskPicture.dispatchPictureRequest()
                     }
                 }
-                buttonsUseCase.nextVisible = ready
             } else {
                 currentNumPictures = 0
             }
+            buttonsUseCase.nextVisible = ready
 
             // Process list -- if any
             when (element.type) {
@@ -154,18 +162,31 @@ class StageCustomFlow(
         return true
     }
 
+    enum class MoveResult {
+        MOVED,
+        FLOW_ENDED,
+        SUB_FLOW_ENDED
+    }
+
     /**
      * Move to the next flow element.
      * @return false if there is no next flow element.
      */
-    fun next(): Boolean {
+    fun next(): MoveResult {
         return with(shared) {
             repo.currentFlowElement?.let { element ->
-                db.tableFlowElement.next(element.id)?.let {
-                    repo.curFlowValue = CustomFlow(it)
-                    true
-                } ?: false
-            } ?: false
+                if (db.tableFlowElement.hasSubFlows(element.flowId)) {
+                    db.tableFlowElement.nextOfSubFlow(element.id)?.let {
+                        repo.curFlowValue = CustomFlow(it)
+                        MoveResult.MOVED
+                    } ?: if (isFlowComplete) MoveResult.FLOW_ENDED else MoveResult.SUB_FLOW_ENDED
+                } else {
+                    db.tableFlowElement.next(element.id)?.let {
+                        repo.curFlowValue = CustomFlow(it)
+                        MoveResult.MOVED
+                    } ?: MoveResult.FLOW_ENDED
+                }
+            } ?: MoveResult.FLOW_ENDED
         }
     }
 
@@ -173,14 +194,21 @@ class StageCustomFlow(
      * Move to the previous flow element
      * @return false if there was no previous flow element.
      */
-    fun prev(): Boolean {
+    fun prev(): MoveResult {
         return with(shared) {
             repo.currentFlowElement?.let { element ->
-                db.tableFlowElement.prev(element.id)?.let {
-                    repo.curFlowValue = CustomFlow(it)
-                    true
-                } ?: false
-            } ?: false
+                if (db.tableFlowElement.hasSubFlows(element.flowId)) {
+                    db.tableFlowElement.prevOfSubFlow(element.id)?.let {
+                        repo.curFlowValue = CustomFlow(it)
+                        MoveResult.MOVED
+                    } ?: MoveResult.SUB_FLOW_ENDED
+                } else {
+                    db.tableFlowElement.prev(element.id)?.let {
+                        repo.curFlowValue = CustomFlow(it)
+                        MoveResult.MOVED
+                    } ?: MoveResult.FLOW_ENDED
+                }
+            } ?: MoveResult.FLOW_ENDED
         }
     }
 
@@ -195,6 +223,12 @@ class StageCustomFlow(
                 }
                 titleUseCase.mainTitleText = getPhotoTitle(element.prompt, currentNumPictures, element.numImages.toInt())
             }
+        }
+    }
+
+    fun updateNextButtonVisible() {
+        with(shared) {
+            buttonsUseCase.nextVisible = ready
         }
     }
 
@@ -216,6 +250,8 @@ class StageCustomFlow(
                                     if (!pictureUseCase.notesReady) {
                                         return false
                                     }
+                                } else if (!repo.areNotesComplete(element)) {
+                                    return false
                                 }
                             }
                         }
@@ -270,8 +306,22 @@ class StageCustomFlow(
     }
 
     private fun computeProgress(element: DataFlowElement): String? {
-        return shared.db.tableFlowElement.progress(element.id)?.let {
-            return "${it.first + 1}/${it.second}"
+        return with(shared) {
+            val prompt = repo.currentFlowElement?.let { element ->
+                db.tableFlowElement.firstOfSubFlow(element.flowId, element.id)?.let { elementId ->
+                    db.tableFlowElement.query(elementId)?.let { element ->
+                        element.prompt
+                    }
+                }
+            }
+            val progress = shared.db.tableFlowElement.progressInSubFlow(element.id)?.let {
+                "${it.first + 1}/${it.second}"
+            }
+            prompt?.let {
+                "$prompt: $progress"
+            } ?: run {
+                progress
+            }
         }
     }
 

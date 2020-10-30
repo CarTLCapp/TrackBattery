@@ -430,10 +430,8 @@ class SqlTableAddress(
 
     override fun removeOrDisable(item: DataAddress) {
         if (db.tableEntry.countAddresses(item.id) == 0 && db.tableProjectAddressCombo.countAddress(item.id) == 0) {
-            Timber.i("remove(" + item.id + ", " + item.toString() + ")")
             remove(item.id)
         } else {
-            Timber.i("disable(" + item.id + ", " + item.toString() + ")")
             item.disabled = true
             update(item)
         }

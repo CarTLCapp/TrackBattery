@@ -17,6 +17,7 @@ sealed class Stage(
     object CONFIRM_ADDRESS : Stage(11)
     object CURRENT_PROJECT : Stage(12)
     object SUB_PROJECT : Stage(13)
+    object SUB_FLOWS : Stage(21)
     object TRUCK_NUMBER_PICTURE : Stage(14)
     object TRUCK_DAMAGE_PICTURE : Stage(15)
     object EQUIPMENT : Stage(16)
@@ -56,6 +57,7 @@ sealed class Stage(
                     CONFIRM_ADDRESS,
                     CURRENT_PROJECT,
                     SUB_PROJECT,
+                    SUB_FLOWS,
                     TRUCK_NUMBER_PICTURE,
                     TRUCK_DAMAGE_PICTURE,
                     EQUIPMENT,
@@ -86,6 +88,7 @@ sealed class Stage(
             CONFIRM_ADDRESS -> "CONFIRM_ADDRESS"
             CURRENT_PROJECT -> "CURRENT_PROJECT"
             SUB_PROJECT -> "SUB_PROJECT"
+            SUB_FLOWS -> "SUB_FLOWS"
             TRUCK_NUMBER_PICTURE -> "TRUCK_NUMBER_PICTURE"
             TRUCK_DAMAGE_PICTURE -> "TRUCK_DAMAGE_PICTURE"
             EQUIPMENT -> "EQUIPMENT"

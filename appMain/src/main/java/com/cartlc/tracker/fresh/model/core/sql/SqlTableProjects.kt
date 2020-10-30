@@ -1,5 +1,5 @@
 /**
- * Copyright 2018, FleetTLC. All rights reserved
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.model.core.sql
 
@@ -293,6 +293,7 @@ class SqlTableProjects(
                 }
             }
         }
+        names.sort()
         return names
     }
 

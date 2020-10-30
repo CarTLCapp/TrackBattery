@@ -1,7 +1,5 @@
 /*
- * *
- *   * Copyright 2019, FleetTLC. All rights reserved
- *
+ * Copyright 2020, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.ui.app
 
@@ -9,7 +7,6 @@ import android.Manifest
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -29,9 +26,8 @@ import com.cartlc.tracker.fresh.model.pref.PrefHelper
 import com.cartlc.tracker.fresh.service.endpoint.DCPing
 import com.cartlc.tracker.fresh.service.endpoint.DCServerRx
 import com.cartlc.tracker.fresh.service.endpoint.DCServerRxImpl
-import com.cartlc.tracker.fresh.service.endpoint.DCService
+import com.cartlc.tracker.fresh.service.endpoint.post.DCPostUseCase
 import com.cartlc.tracker.fresh.service.help.AmazonHelper
-import com.cartlc.tracker.fresh.service.help.ServerHelper
 import com.cartlc.tracker.fresh.ui.app.dependencyinjection.ComponentRoot
 import com.cartlc.tracker.fresh.ui.common.PermissionHelper.PermissionListener
 import com.cartlc.tracker.fresh.ui.common.PermissionHelper.PermissionRequest
@@ -105,18 +101,34 @@ class TBApplication : Application() {
         }
     }
 
-    private lateinit var carRepo: CarRepository
-    private lateinit var prefHelper: PrefHelper
-    private lateinit var dm: DatabaseManager
-    private lateinit var dcRx: DCServerRx
-    private lateinit var vehicleRepository: VehicleRepository
+    private val carRepo: CarRepository by lazy {
+        CarRepository(
+                dm,
+                prefHelper,
+                flowUseCase
+        )
+    }
+    val componentRoot: ComponentRoot by lazy {
+        ComponentRoot(this,
+                dm,
+                prefHelper,
+                flowUseCase,
+                carRepo,
+                ping,
+                dcRx
+        )
+    }
 
-    lateinit var componentRoot: ComponentRoot
-    lateinit var amazonHelper: AmazonHelper
-    lateinit var flowUseCase: FlowUseCase
-    lateinit var ping: DCPing
-    lateinit var vehicleViewModel: VehicleViewModel
+    private val prefHelper: PrefHelper by lazy { PrefHelper(this, dm) }
+    private val dm: DatabaseManager by lazy { DatabaseManager(this) }
+    private val dcRx: DCServerRx by lazy { DCServerRxImpl(ping) }
+    private val vehicleRepository: VehicleRepository by lazy {VehicleRepository(this, dm) }
+    private val postUseCase: DCPostUseCase by lazy { componentRoot.postUseCase }
 
+    val amazonHelper: AmazonHelper by lazy { AmazonHelper(db) }
+    val flowUseCase: FlowUseCase by lazy { FlowUseCaseImpl() }
+    val ping: DCPing by lazy { DCPing(this, repo) }
+    val vehicleViewModel: VehicleViewModel by lazy {VehicleViewModel(vehicleRepository) }
     val repo: CarRepository
         get() = carRepo
 
@@ -128,53 +140,20 @@ class TBApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
-        dm = DatabaseManager(this)
-        prefHelper = PrefHelper(this, dm)
-        flowUseCase = FlowUseCaseImpl()
-        carRepo = CarRepository(
-                dm,
-                prefHelper,
-                flowUseCase
-        )
-        ping = DCPing(this, repo)
-        dcRx = DCServerRxImpl(ping)
-        componentRoot = ComponentRoot(this,
-                prefHelper,
-                flowUseCase,
-                carRepo,
-                ping,
-                dcRx)
-        carRepo.computeCurStage()
         carRepo.db.tablePicture.removeFileDoesNotExist()
-
-        vehicleRepository = VehicleRepository(this, dm)
-        vehicleViewModel = VehicleViewModel(vehicleRepository)
-
         if (IsDevelopmentServer() && DEBUG_TREE) {
             Timber.plant(Timber.DebugTree())
         } else {
             Timber.plant(CrashReportingTree(db))
         }
-        ServerHelper.Init(this)
-        amazonHelper = AmazonHelper(db)
+        Timber.tag("CarTLC")
+
         CheckError.Init()
         LocationHelper.Init(this, db)
-
         if (prefHelper.detectOneTimeReloadFromServerCheck()) {
-            reloadFromServer()
+            postUseCase.reloadFromServer()
         }
-    }
-
-    fun reloadFromServer() {
-        prefHelper.reloadFromServer()
-        ping()
-    }
-
-    fun ping() {
-        if (ServerHelper.instance.hasConnection(this)) {
-            startService(Intent(this, DCService::class.java))
-        }
+        carRepo.computeCurStageLight()
     }
 
     override fun attachBaseContext(base: Context) {

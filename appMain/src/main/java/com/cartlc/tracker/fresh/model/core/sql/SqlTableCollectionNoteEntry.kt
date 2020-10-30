@@ -78,22 +78,36 @@ class SqlTableCollectionNoteEntry(
         try {
             val values = ContentValues()
             for (note in notes) {
-                if (!note.value.isNullOrEmpty()) {
-                    values.clear()
-                    values.put(KEY_COLLECTION_ID, collectionId)
-                    values.put(KEY_NOTE_ID, note.id)
-                    values.put(KEY_VALUE, note.value)
-                    query(collectionId, note.id)?.let { existing ->
-                        val where = "$KEY_ROWID=?"
-                        val whereArgs = arrayOf(existing.id.toString())
-                        if (dbSql.update(TABLE_NAME, values, where, whereArgs) == 0) {
-                            dbSql.insert(TABLE_NAME, null, values)
-                        }
-                    } ?: run {
+                values.clear()
+                values.put(KEY_COLLECTION_ID, collectionId)
+                values.put(KEY_NOTE_ID, note.id)
+                values.put(KEY_VALUE, note.value)
+                query(collectionId, note.id)?.let { existing ->
+                    val where = "$KEY_ROWID=?"
+                    val whereArgs = arrayOf(existing.id.toString())
+                    if (dbSql.update(TABLE_NAME, values, where, whereArgs) == 0) {
                         dbSql.insert(TABLE_NAME, null, values)
                     }
+                } ?: run {
+                    dbSql.insert(TABLE_NAME, null, values)
                 }
             }
+            dbSql.setTransactionSuccessful()
+        } catch (ex: Exception) {
+            TBApplication.ReportError(ex, SqlTableCollectionNoteEntry::class.java, "saveUploaded()", "db")
+        } finally {
+            dbSql.endTransaction()
+        }
+    }
+
+    override fun updateValue(collectionId: Long, note: DataNote) {
+        dbSql.beginTransaction()
+        try {
+            val where = "$KEY_NOTE_ID=? AND $KEY_COLLECTION_ID=?"
+            val whereArgs = arrayOf(note.id.toString(), collectionId.toString())
+            val values = ContentValues()
+            values.put(KEY_VALUE, note.value)
+            dbSql.update(TABLE_NAME, values, where, whereArgs)
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {
             TBApplication.ReportError(ex, SqlTableCollectionNoteEntry::class.java, "saveUploaded()", "db")

@@ -39,6 +39,7 @@
     <string name="title_secondary_login">Optional Secondary Login</string>
     <string name="title_root_project">Root Project</string>
     <string name="title_sub_project">Sub Project</string>
+    <string name="title_sub_flows">Sub Flows</string>
     <string name="title_project_">Project:</string>
     <string name="title_state">State</string>
     <string name="title_city">City</string>

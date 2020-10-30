@@ -3,13 +3,13 @@ buildscript {
     ext {
         compileSdkVersion = 29
         targetSdkVersion = 29
-        kotlin_version = '1.4.10'
+        kotlin_version = '1.4.21'
         timber_version = '4.7.1'
         picasso_version = '2.71828'
         play_services = '16.1.0'
         dagger_version = '2.22.1'
         mockwebserver_version = '4.0.0-alpha01'
-        mockcore_version = '3.4.4'
+        mockcore_version = '3.7.0'
         mockkot_version = '1.6.0'
     }
     repositories {
@@ -18,11 +18,11 @@ buildscript {
         maven { url 'https://maven.fabric.io/public' }
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.0.2"
+        classpath "com.android.tools.build:gradle:4.1.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
         classpath 'com.google.gms:google-services:4.3.4'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.3.0'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.4.1'
     }
 }
 

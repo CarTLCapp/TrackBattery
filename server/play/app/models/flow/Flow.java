@@ -33,7 +33,23 @@ public class Flow extends com.avaje.ebean.Model {
     public static Finder<Long, Flow> find = new Finder<Long, Flow>(Flow.class);
 
     public static List<Flow> list() {
-        return find.orderBy("sub_project_id asc").findList();
+        return find.findList();
+    }
+
+    private static class SortByName implements Comparator<Flow> {
+        public int compare(Flow a, Flow b) {
+            int c = a.getRootProjectName().compareTo(b.getRootProjectName());
+            if (c != 0) {
+                return c;
+            }
+            return a.getSubProjectName().compareTo(b.getSubProjectName());
+        }
+    }
+
+    public static List<Flow> listSorted() {
+        List<Flow> items = list();
+        Collections.sort(items, new SortByName());
+        return items;
     }
 
     public static Flow get(long id) {
@@ -83,6 +99,10 @@ public class Flow extends com.avaje.ebean.Model {
 
     public int getChainSize() {
         return FlowElementCollection.getNumElements(id);
+    }
+
+    public int getSubFlowCount() {
+        return FlowElementCollection.getSubFlowCount(id);
     }
 
     public static boolean hasElements(long id) {

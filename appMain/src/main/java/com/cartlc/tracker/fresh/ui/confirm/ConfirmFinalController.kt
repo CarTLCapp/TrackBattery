@@ -58,7 +58,7 @@ class ConfirmFinalController(
     override fun onStageChanged(flow: Flow) {
         when (flow.stage) {
             Stage.CONFIRM -> {
-                curEntry = prefHelper.saveEntry()
+                curEntry = prefHelper.saveEntry(false)
                 curEntry?.let { entry -> fill(entry) }
             }
             else -> {

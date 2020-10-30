@@ -15,7 +15,7 @@ class StageCurrentProject(
     fun process() {
         with(shared) {
             if (!repo.flowUseCase.wasFromNotify) {
-                serviceUseCase.ping()
+                postUseCase.ping()
             }
             checkErrors()
             mainListUseCase.visible = true

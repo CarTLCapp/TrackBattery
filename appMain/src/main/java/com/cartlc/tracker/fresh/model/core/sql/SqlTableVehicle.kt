@@ -24,6 +24,7 @@ open class SqlTableVehicle(
 ) : TableVehicle {
 
     companion object {
+        private val TAG = SqlTableVehicle::class.simpleName
 
         private const val TABLE_NAME = "table_vehicle"
 
@@ -117,7 +118,7 @@ open class SqlTableVehicle(
             val where = "$KEY_ROWID=?"
             val whereArgs = arrayOf(java.lang.Long.toString(vehicle.id))
             if (dbSql.update(TABLE_NAME, values, where, whereArgs) == 0) {
-                Timber.e("SqlTableVehicle.saveUploaded(): Unable to update tableEntry")
+                Timber.tag(TAG).e("SqlTableVehicle.saveUploaded(): Unable to update tableEntry")
             }
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {
@@ -228,7 +229,7 @@ open class SqlTableVehicle(
             dbSql.update(TABLE_NAME, values, null, null)
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {
-            Timber.e(ex)
+            Timber.tag(TAG).e(ex)
         } finally {
             dbSql.endTransaction()
         }

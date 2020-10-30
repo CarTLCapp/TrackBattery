@@ -21,24 +21,16 @@ class ButtonsViewMvcImpl(
 
     init {
         btnPrev.setOnClickListener { view ->
-            for (listener in listeners) {
-                listener.onBtnPrevClicked(view)
-            }
+            listeners.forEach { it.onBtnPrevClicked(view) }
         }
         btnNext.setOnClickListener { view ->
-            for (listener in listeners) {
-                listener.onBtnNextClicked(view)
-            }
+            listeners.forEach { it.onBtnNextClicked(view) }
         }
         btnCenter.setOnClickListener { view ->
-            for (listener in listeners) {
-                listener.onBtnCenterClicked(view)
-            }
+            listeners.forEach { it.onBtnCenterClicked(view) }
         }
         btnChange.setOnClickListener { view ->
-            for (listener in listeners) {
-                listener.onBtnChangeClicked(view)
-            }
+            listeners.forEach { it.onBtnChangeClicked(view) }
         }
     }
 

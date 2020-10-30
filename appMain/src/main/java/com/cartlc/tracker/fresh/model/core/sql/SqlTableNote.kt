@@ -27,6 +27,8 @@ class SqlTableNote constructor(
 ): TableNote {
 
     companion object {
+        private val TAG = SqlTableNote::class.simpleName
+
         private const val TABLE_NAME = "list_notes"
 
         private const val KEY_ROWID = "_id"
@@ -273,7 +275,7 @@ class SqlTableNote constructor(
         if (db.tableCollectionNoteEntry.countNotes(note.id) == 0) {
             remove(note.id)
         } else {
-            Timber.i("Did not remove unused note because some entries are using it: $note")
+            Timber.tag(TAG).i("Did not remove unused note because some entries are using it: $note")
         }
     }
 

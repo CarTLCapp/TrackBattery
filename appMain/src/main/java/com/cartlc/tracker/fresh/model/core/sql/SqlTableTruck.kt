@@ -1,5 +1,5 @@
 /**
- * Copyright 2018, FleetTLC. All rights reserved
+ * Copyright 2021, FleetTLC. All rights reserved
  */
 package com.cartlc.tracker.fresh.model.core.sql
 
@@ -25,6 +25,7 @@ class SqlTableTruck(
 ) : TableTruck {
 
     companion object {
+        private val TAG = SqlTableTruck::class.simpleName
 
         private const val TABLE_NAME = "table_trucks_v14"
 
@@ -153,7 +154,7 @@ class SqlTableTruck(
                     values.put(KEY_ROWID, truck.id)
                     val confirmId = dbSql.insert(TABLE_NAME, null, values)
                     if (confirmId != truck.id) {
-                        Timber.e("Did not transfer truck properly for ID ${truck.id}...got back $confirmId")
+                        Timber.tag(TAG).e("Did not transfer truck properly for ID ${truck.id}...got back $confirmId")
                     }
                 }
             } else {

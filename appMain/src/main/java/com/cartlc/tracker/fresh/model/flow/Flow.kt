@@ -34,9 +34,11 @@ open class Flow(
 
     companion object {
 
+        private val TAG = Flow::class.simpleName
+
         fun checkNull(flow: Flow?): Flow {
             if (flow == null) {
-                Timber.e("UNKNOWN stage")
+                Timber.tag(TAG).e("UNKNOWN stage")
                 return LoginFlow()
             }
             return flow
@@ -59,6 +61,7 @@ open class Flow(
                     Stage.CONFIRM_ADDRESS -> ConfirmAddressFlow()
                     Stage.CURRENT_PROJECT -> CurrentProjectFlow()
                     Stage.SUB_PROJECT -> SubProjectFlow()
+                    Stage.SUB_FLOWS -> SubFlowsFlow()
                     Stage.TRUCK_NUMBER_PICTURE -> TruckNumberPictureFlow()
                     Stage.TRUCK_DAMAGE_PICTURE -> TruckDamagePictureFlow()
                     Stage.EQUIPMENT -> EquipmentFlow()
@@ -152,8 +155,9 @@ class CurrentProjectFlow : Flow(Stage.CURRENT_PROJECT, Action.VIEW_PROJECT, Acti
 class SubProjectFlow : Flow(Stage.SUB_PROJECT, Stage.CURRENT_PROJECT, null, Stage.TRUCK_NUMBER_PICTURE)
 class TruckNumberPictureFlow : Flow(Stage.TRUCK_NUMBER_PICTURE, Stage.SUB_PROJECT, null, Stage.TRUCK_DAMAGE_PICTURE)
 class TruckDamagePictureFlow : Flow(Stage.TRUCK_DAMAGE_PICTURE, Stage.TRUCK_NUMBER_PICTURE, null, Stage.EQUIPMENT)
-class EquipmentFlow : Flow(Stage.EQUIPMENT, Stage.TRUCK_DAMAGE_PICTURE, Stage.ADD_EQUIPMENT, Stage.CUSTOM_FLOW(Stage.FIRST_ELEMENT))
+class EquipmentFlow : Flow(Stage.EQUIPMENT, Stage.TRUCK_DAMAGE_PICTURE, Stage.ADD_EQUIPMENT, Stage.SUB_FLOWS)
 class AddEquipmentFlow : Flow(Stage.ADD_EQUIPMENT, Stage.TRUCK_DAMAGE_PICTURE, null, Stage.CUSTOM_FLOW(Stage.FIRST_ELEMENT))
+class SubFlowsFlow : Flow(Stage.SUB_FLOWS, Stage.EQUIPMENT, null, Stage.CUSTOM_FLOW(Stage.FIRST_ELEMENT))
 class CustomFlow(flowId: Long) : Flow(Stage.CUSTOM_FLOW(flowId), Stage.EQUIPMENT, null, Stage.STATUS)
 class StatusFlow : Flow(Stage.STATUS, Stage.CUSTOM_FLOW(Stage.LAST_ELEMENT), null, Stage.CONFIRM)
 class ConfirmFlow : Flow(Stage.CONFIRM, Stage.STATUS, null, Stage.CURRENT_PROJECT)

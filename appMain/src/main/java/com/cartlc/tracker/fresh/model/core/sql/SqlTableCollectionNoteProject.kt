@@ -8,10 +8,8 @@ import com.cartlc.tracker.fresh.model.core.data.DataCollectionItem
 import com.cartlc.tracker.fresh.model.core.data.DataNote
 import com.cartlc.tracker.fresh.model.core.table.DatabaseTable
 import com.cartlc.tracker.fresh.model.core.table.TableCollectionNoteProject
-
-import java.util.ArrayList
-
 import timber.log.Timber
+import java.util.*
 
 /**
  * Created by dug on 5/16/17.
@@ -23,6 +21,8 @@ class SqlTableCollectionNoteProject(
 ) : SqlTableCollection(sqlDb, TABLE_NAME), TableCollectionNoteProject {
 
     companion object {
+        private val TAG = SqlTableCollectionNoteProject::class.simpleName
+
         internal const val TABLE_NAME = "note_project_collection"
     }
 
@@ -37,7 +37,7 @@ class SqlTableCollectionNoteProject(
             if (note == null) {
                 if (!complainedAbout.contains(noteId)) {
                     complainedAbout.add(noteId)
-                    Timber.e("Could not find note with ID $noteId from project ID $projectNameId")
+                    Timber.tag(TAG).e("Could not find note with ID $noteId from project ID $projectNameId")
                 }
             } else {
                 list.add(note)
@@ -49,7 +49,7 @@ class SqlTableCollectionNoteProject(
     override fun removeIfGone(item: DataCollectionItem) {
         if (item.isBootstrap) {
             if (db.tableNote.query(item.value_id) == null) {
-                Timber.i("remove(${item.id}, $item)")
+                Timber.tag(TAG).i("remove(${item.id}, $item)")
                 remove(item.id)
             }
         }

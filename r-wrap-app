@@ -6,41 +6,89 @@
 DATE=`date +%F`
 VERSION=`grep versionName appMain/build.gradle | awk '{gsub(/"/, "", $2); print $2}'`
 WRAP=../wrap/$DATE
-TGT=~/Downloads
+TGT=../wrap/Dropbox
+SRCFILE="./appMain/build/outputs/apk/debug/appMain-debug.apk"
+SRCFILE2="./appMain/debug/appMain-debug.apk"
+BUNDLE="./appMain/build/outputs/bundle/release/appMain-release.aab"
+BUNDLE2="./appMain/release/appMain-release.aab"
+RELEASE="./appMain/build/outputs/apk/release/appMain-release.apk"
+RELEASE2="./appMain/release/appMain-release.apk"
 
 while [[ $# -gt 0 ]]
 do
 	key="$1"
 
 	case $key in
-		-d|--debug)
-			SRCFILE="./appMain/build/outputs/apk/debug/appMain-debug.apk"
+		-d)
+                        if [ -f ${SRCFILE2} ]; then
+                            echo -n "Ignored: "
+                            ls -l $SRCFILE2
+                        fi
 			TGTFILE="CarTLC-d${VERSION}.apk"
-    		shift # past argument
-    		;;
-		-b)
-			SRCFILE=`ls appMain/release/*.aab`
-			TGTFILE="CarTLC-r${VERSION}.aab"
-    		shift # past argument
-    		;;
+                        shift # past argument
+			;;
+                -d2)
+                        if [ -f ${SRCFILE} ]; then
+                            echo -n "Ignored: "
+                            ls -l $SRCFILE
+                        fi
+                        SRCFILE=${SRCFILE2}
+			                  TGTFILE="CarTLC-d${VERSION}.apk"
+                        shift # past argument
+                        ;;
 		-r)
-			SRCFILE=`ls appMain/release/*.apk`
-			TGTFILE="CarTLC-r${VERSION}.apk"
-    		shift
-		;;
+			                  SRCFILE=`ls appMain/release/*.apk`
+                        if [ -f ${RELEASE2} ]; then
+                            echo -n "Ignored: "
+                            ls -l $RELEASE2
+                        fi
+                        SRCFILE=${RELEASE}
+			                  TGTFILE="CarTLC-r${VERSION}.apk"
+                        shift # past argument
+			;;
+                -r2)
+                        if [ -f ${RELEASE} ]; then
+                            echo -n "Ignored: "
+                            ls -l $RELEASE
+                        fi
+                        SRCFILE=${RELEASE2}
+			                  TGTFILE="CarTLC-r${VERSION}.apk"
+                        shift # past argument
+                        ;;
+                -b)
+                        if [ -f ${BUNDLE2} ]; then
+                            echo -n "Ignored: "
+                            ls -l $BUNDLE2
+                        fi
+                        SRCFILE=${BUNDLE}
+			                  TGTFILE="CarTLC-r${VERSION}.aab"
+                        shift # past argument
+                        ;;
+                -b2)
+                        if [ -f ${BUNDLE} ]; then
+                            echo -n "Ignored: "
+                            ls -l $BUNDLE
+                        fi
+                        SRCFILE=${BUNDLE2}
+			                  TGTFILE="CarTLC-r${VERSION}.aab"
+                        shift # past argument
+                        ;;
+
+
 		*)
 			print "Unknown opton: $key"
 			exit 1;
-            # unknown option
-		;;
+			;;
 	esac
 done
 
 mkdir -p $WRAP
 
-ls $SRCFILE
+echo -n "Using:   "
+ls -l $SRCFILE
 
 cp $SRCFILE $WRAP/$TGTFILE
 cp $WRAP/$TGTFILE $TGT/
+cp $WRAP/$TGTFILE ~/Downloads
 
 echo "Created $TGTFILE in $WRAP and $TGT"

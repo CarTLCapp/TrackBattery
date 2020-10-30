@@ -22,7 +22,7 @@ class SqlTableCrash(
 ) : TableCrash {
 
     companion object {
-
+        private val TAG = SqlTableCrash::class.simpleName
         private const val TABLE_NAME = "table_crash"
 
         private const val KEY_ROWID = "_id"
@@ -84,7 +84,7 @@ class SqlTableCrash(
             dbSql.update(TABLE_NAME, values, null, null)
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {
-            Timber.e(ex)
+            Timber.tag(TAG).e(ex)
         } finally {
             dbSql.endTransaction()
         }
@@ -152,7 +152,7 @@ class SqlTableCrash(
             val where = "$KEY_ROWID=?"
             val whereArgs = arrayOf(java.lang.Long.toString(line.id))
             if (dbSql.update(TABLE_NAME, values, where, whereArgs) == 0) {
-                Timber.e("Unable to update tableCrash tableEntry")
+                Timber.tag(TAG).e("Unable to update tableCrash tableEntry")
             }
             dbSql.setTransactionSuccessful()
         } catch (ex: Exception) {
