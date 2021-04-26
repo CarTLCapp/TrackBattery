@@ -60,6 +60,8 @@ class PrefHelper constructor(
         private const val KEY_AUTO_ROTATE_PICTURE = "auto_rotate_picture"
         private const val KEY_LAST_ACTIVITY_TIME = "last_activity_time"
         private const val KEY_NEW_ENTRY_CREATION_TIME = "new_entry_creation_time"
+        private const val KEY_LATEST_VERSION_KNOWN = "latest_version_known"
+        private const val KEY_LATEST_VERSION_URL = "latest_version_url"
 
         const val VERSION_PROJECT = "version_project"
         const val VERSION_COMPANY = "version_company"
@@ -74,6 +76,22 @@ class PrefHelper constructor(
 
         private const val CONFIRM_PROMPT_PREFIX = "PROMPT__"
     }
+
+    fun convertVersionToInt(version: String): Int {
+        return version.toFloatOrNull()?.let { float ->
+            (float * 100).toInt()
+        } ?: 0
+    }
+
+    var latestKnownVersion: Int
+        get() = getInt(KEY_LATEST_VERSION_KNOWN, 0)
+        set(id) = setInt(KEY_LATEST_VERSION_KNOWN, id)
+
+    var latestKnownUrl: String?
+        get() = getString(KEY_LATEST_VERSION_URL, null)
+        set(value) {
+            setString(KEY_LATEST_VERSION_URL, value)
+        }
 
     val isLocalCompany: Boolean
         get() = db.tableAddress.isLocalCompanyOnly(company)

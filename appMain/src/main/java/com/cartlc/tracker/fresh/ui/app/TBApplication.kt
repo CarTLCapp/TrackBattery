@@ -26,8 +26,9 @@ import com.cartlc.tracker.fresh.service.endpoint.DCServerRxImpl
 import com.cartlc.tracker.fresh.service.endpoint.post.DCPostUseCase
 import com.cartlc.tracker.fresh.service.help.AmazonHelper
 import com.cartlc.tracker.fresh.ui.app.dependencyinjection.ComponentRoot
-import com.cartlc.tracker.fresh.ui.common.PermissionHelper.PermissionListener
-import com.cartlc.tracker.fresh.ui.common.PermissionHelper.PermissionRequest
+import com.cartlc.tracker.fresh.ui.common.PermissionUseCase
+import com.cartlc.tracker.fresh.ui.common.PermissionUseCase.PermissionRequest
+import com.cartlc.tracker.fresh.ui.common.PermissionUseCaseImpl
 import com.cartlc.tracker.ui.util.CheckError
 import com.cartlc.tracker.ui.util.helper.LocationHelper
 import com.cartlc.tracker.viewmodel.vehicle.VehicleViewModel
@@ -47,7 +48,9 @@ class TBApplication : Application() {
                 PermissionRequest(Manifest.permission.READ_EXTERNAL_STORAGE,
                         R.string.perm_write_external_storage),
                 PermissionRequest(Manifest.permission.ACCESS_FINE_LOCATION,
-                        R.string.perm_location))
+                        R.string.perm_location),
+                PermissionRequest(Manifest.permission.REQUEST_INSTALL_PACKAGES,
+                        R.string.perm_install_packages))
 
         fun getUri(ctx: Context, file: File): Uri {
             return FileProvider.getUriForFile(ctx, "com.cartcl.tracker.fileprovider", file)
@@ -118,7 +121,7 @@ class TBApplication : Application() {
         get() = dm
 
     val version: String
-        get() = componentRoot.deviceHelper.version
+        get() = componentRoot.deviceHelper.versionName
 
     override fun onCreate() {
         super.onCreate()
@@ -141,8 +144,9 @@ class TBApplication : Application() {
         MultiDex.install(this)
     }
 
-    fun checkPermissions(act: Activity, listener: PermissionListener) {
-        componentRoot.permissionHelper.checkPermissions(act, PERMISSIONS, listener)
+    fun checkPermissions(act: Activity, listener: PermissionUseCase.Listener) {
+        val useCase = PermissionUseCaseImpl(act)
+        useCase.checkPermissions(PERMISSIONS, listener)
     }
 
 //    fun requestZipCode(tableZipCode: String) {

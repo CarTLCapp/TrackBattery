@@ -6,6 +6,7 @@ package com.cartlc.tracker.fresh.ui.main
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.cartlc.tracker.R
@@ -27,6 +28,7 @@ import com.cartlc.tracker.fresh.ui.picture.PictureListView
 import com.cartlc.tracker.fresh.ui.title.TitleView
 import com.cartlc.tracker.fresh.ui.title.TitleViewMvc
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.security.acl.Group
 
 class MainViewMvcImpl(
         inflater: LayoutInflater,
@@ -53,16 +55,8 @@ class MainViewMvcImpl(
     private val listEntryHint = findViewById<TextView>(R.id.list_entry_hint)
     private val customProgressView = findViewById<TextView>(R.id.custom_progress)
     private val titleView = findViewById<TitleView>(R.id.frame_title)
-
-    override val pictureUseCase: PictureListUseCase = picturesView.control
-    override val mainListUseCase: MainListUseCase = mainListView.control
-    override val entrySimpleUseCase: EntrySimpleUseCase = entrySimpleView.control
-
-    override val titleViewMvc: TitleViewMvc
-        get() = titleView.viewMvc
-
-    override val buttonsViewMvc: ButtonsViewMvc
-        get() = buttonsView.viewMvc
+    private val updateGroup = findViewById<androidx.constraintlayout.widget.Group>(R.id.update)
+    private val updateButton = findViewById<Button>(R.id.update_button)
 
     private val fragmentHelper = factoryViewHelper.fragmentHelper
     private val buttonsController: ButtonsController
@@ -76,7 +70,26 @@ class MainViewMvcImpl(
         ConfirmFinalFragment()
     }
 
-    // region MainViewMvc.Listener
+    init {
+        updateButton.setOnClickListener { listeners.forEach { it.onUpdateClicked() } }
+    }
+    // region MainViewMvc
+
+    override val pictureUseCase: PictureListUseCase = picturesView.control
+    override val mainListUseCase: MainListUseCase = mainListView.control
+    override val entrySimpleUseCase: EntrySimpleUseCase = entrySimpleView.control
+
+    override val titleViewMvc: TitleViewMvc
+        get() = titleView.viewMvc
+
+    override val buttonsViewMvc: ButtonsViewMvc
+        get() = buttonsView.viewMvc
+
+    override var updateVisible: Boolean
+        get() = updateGroup.visibility == View.VISIBLE
+        set(value) {
+            updateGroup.visibility = if (value) View.VISIBLE else View.GONE
+        }
 
     override val confirmUseCase: ConfirmFinalUseCase?
         get() = confirmFragment.useCase
@@ -122,5 +135,6 @@ class MainViewMvcImpl(
             customProgressView.text = value
         }
 
-    // endregion MainViewMvc.Listener
+    // endregion MainViewMvc
+
 }

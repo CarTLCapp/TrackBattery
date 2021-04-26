@@ -25,7 +25,7 @@ android {
         minSdkVersion 21
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 74
-        versionName "4.04"
+        versionName "4.05"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
@@ -99,6 +99,9 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:25.12.0')
     implementation 'com.google.firebase:firebase-crashlytics-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    // Permissions
+    implementation 'com.anthonycr.grant:permissions:1.0'
 
     // LeakCanary
 //    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.0-alpha-2'

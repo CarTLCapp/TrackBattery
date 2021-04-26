@@ -99,7 +99,7 @@ class DCPing(
         get() {
             if (appVersion == null) {
                 try {
-                    appVersion = deviceHelper.version
+                    appVersion = deviceHelper.versionName
                 } catch (ex: Exception) {
                     TBApplication.ReportError(ex, DCPing::class.java, "getVersion()", "server")
                 }

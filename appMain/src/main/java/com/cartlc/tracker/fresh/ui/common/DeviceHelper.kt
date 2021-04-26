@@ -20,7 +20,7 @@ class DeviceHelper(
     private val packageManager = act.packageManager
     private val packageName = act.packageName
 
-    val version: String
+    val versionName: String
         @Throws(PackageManager.NameNotFoundException::class)
         get() {
             val sbuf = StringBuilder()
@@ -31,6 +31,11 @@ class DeviceHelper(
                 sbuf.append("d")
             }
             return sbuf.toString()
+        }
+
+    val versionInt: Int
+        get() {
+            return prefHelper.convertVersionToInt(packageManager.getPackageInfo(packageName, 0).versionName)
         }
 
 }

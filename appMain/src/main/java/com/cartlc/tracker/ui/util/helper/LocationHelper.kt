@@ -17,7 +17,7 @@ import com.cartlc.tracker.fresh.ui.app.TBApplication
 import com.cartlc.tracker.fresh.model.core.data.DataAddress
 import com.cartlc.tracker.fresh.model.core.data.DataStates
 import com.cartlc.tracker.fresh.model.core.table.DatabaseTable
-import com.cartlc.tracker.fresh.ui.common.PermissionHelper
+import com.cartlc.tracker.fresh.ui.common.PermissionUseCase
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 
@@ -302,14 +302,13 @@ class LocationHelper(
         if (mFusedLocationClient == null) {
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(act)
         }
-        mApp.checkPermissions(act, object : PermissionHelper.PermissionListener {
-            override fun onGranted(permission: String) {
-                if (Manifest.permission.ACCESS_FINE_LOCATION == permission) {
-                    getLocation(act, callback)
-                }
+        mApp.checkPermissions(act, object : PermissionUseCase.Listener {
+            override fun onSuccess() {
+                getLocation(act, callback)
             }
 
-            override fun onDenied(permission: String) {}
+            override fun onDenied(onExit: Boolean) {
+            }
         })
     }
 

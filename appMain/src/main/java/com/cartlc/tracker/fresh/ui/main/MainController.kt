@@ -25,6 +25,7 @@ import com.cartlc.tracker.fresh.model.pref.PrefHelper
 import com.cartlc.tracker.fresh.service.LocationUseCase
 import com.cartlc.tracker.fresh.service.endpoint.post.DCPostUseCase
 import com.cartlc.tracker.fresh.service.instabug.InstaBugUseCase
+import com.cartlc.tracker.fresh.service.update.UpdateAppUseCase
 import com.cartlc.tracker.fresh.ui.app.TBApplication
 import com.cartlc.tracker.fresh.ui.app.dependencyinjection.BoundAct
 import com.cartlc.tracker.fresh.ui.app.dependencyinjection.ComponentRoot
@@ -43,7 +44,6 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import timber.log.Timber
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 
 class MainController(
         private val boundAct: BoundAct,
@@ -62,6 +62,7 @@ class MainController(
         private val TAG = MainController::class.simpleName
         const val REQUEST_IMAGE_CAPTURE = 1
         private const val REQUEST_EDIT_ENTRY = 2
+        private const val REQUEST_UPDATE_APP = 3
 
         const val RESULT_EDIT_ENTRY = 2
         const val RESULT_EDIT_PROJECT = 3
@@ -82,7 +83,7 @@ class MainController(
     private val deviceHelper: DeviceHelper by lazy { componentRoot.deviceHelper }
     private val dialogHelper: DialogHelper by lazy { boundAct.dialogHelper }
     private val dialogNavigator: DialogNavigator by lazy { boundAct.dialogNavigator }
-    private val permissionHelper: PermissionHelper by lazy { componentRoot.permissionHelper }
+    private val permissionUseCase: PermissionUseCase by lazy { boundAct.permissionUseCase }
     private val bitmapHelper: BitmapHelper by lazy { componentRoot.bitmapHelper }
     private val instaBugUseCase: InstaBugUseCase by lazy { componentRoot.instaBugUseCase }
     private val pictureUseCase: PictureListUseCase by lazy { viewMvc.pictureUseCase }
@@ -91,6 +92,7 @@ class MainController(
     private val eventController: EventController by lazy { boundAct.componentRoot.eventController }
     private val actionUseCase: ActionUseCase by lazy { repo.actionUseCase }
     private val postUseCase: DCPostUseCase by lazy { boundAct.componentRoot.postUseCase }
+    private val updateUseCase: UpdateAppUseCase by lazy { boundAct.updateAppUseCase }
     private var showServerError = true
 
     init {
@@ -108,7 +110,7 @@ class MainController(
             sbuf.append(messageHandler.getString(StringMessage.app_name))
             sbuf.append(" - ")
             try {
-                sbuf.append(deviceHelper.version)
+                sbuf.append(deviceHelper.versionName)
             } catch (ex: Exception) {
                 TBApplication.ReportError(ex, MainController::class.java, "versionedTitle", "main")
             }
@@ -326,14 +328,21 @@ class MainController(
         prefHelper.setFromCurrentProjectId()
         buttonsController.registerListener(this)
         viewMvc.registerListener(this)
-        permissionHelper.checkPermissions(boundAct.act, TBApplication.PERMISSIONS,
-                object : PermissionHelper.PermissionListener {
-                    override fun onGranted(permission: String) {
+        permissionUseCase.checkPermissions(TBApplication.PERMISSIONS,
+                object : PermissionUseCase.Listener {
+
+                    override fun onSuccess() {
                         shared.getLocation()
                     }
 
-                    override fun onDenied(permission: String) {}
+                    override fun onDenied(onExit: Boolean) {
+                        if (onExit) {
+                            screenNavigator.finish()
+                        }
+                    }
+
                 })
+        viewMvc.updateVisible = updateUseCase.isUpdateAvailable
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
@@ -379,7 +388,6 @@ class MainController(
         when (level) {
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> error("onTrimMemory($level): $tag")
         }
-
     }
 
     // endregion Lifecycle
@@ -606,6 +614,10 @@ class MainController(
         }
     }
 
+    override fun onUpdateClicked() {
+        updateUseCase.updateApp(REQUEST_UPDATE_APP)
+    }
+
     private fun hasSubProjects(): Boolean {
         return prefHelper.projectRootName?.let { rootName ->
             db.tableFlow.filterHasFlow(db.tableProjects.querySubProjects(rootName)).isNotEmpty()
@@ -736,6 +748,8 @@ class MainController(
                 } else {
                     taskPicture.onPictureRequestAbort()
                 }
+            REQUEST_UPDATE_APP ->
+                viewMvc.updateVisible = updateUseCase.isUpdateAvailable
             else -> onAbort()
         }
     }
@@ -778,7 +792,7 @@ class MainController(
     // region handlePermissionResult
 
     fun handlePermissionResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        permissionHelper.onHandlePermissionResult(requestCode, permissions, grantResults)
+        permissionUseCase.onHandlePermissionResult(requestCode, permissions, grantResults)
     }
 
     // endregion handlePermissionResult
@@ -989,6 +1003,7 @@ class MainController(
     private fun error(msg: String) {
         Timber.e(msg)
     }
+
     private fun showDebugDialog() {
         val toDevelopment = !prefHelper.isDevelopment
         val toDevelopmentText = if (toDevelopment) "development" else "release"

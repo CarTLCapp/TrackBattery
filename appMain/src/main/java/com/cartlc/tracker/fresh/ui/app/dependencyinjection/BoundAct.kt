@@ -9,11 +9,11 @@ import androidx.lifecycle.LifecycleOwner
 import com.cartlc.tracker.fresh.model.CarRepository
 import com.cartlc.tracker.fresh.service.LocationUseCase
 import com.cartlc.tracker.fresh.service.LocationUseCaseImpl
+import com.cartlc.tracker.fresh.service.update.UpdateAppUseCase
+import com.cartlc.tracker.fresh.service.update.UpdateAppUseCaseImpl
 import com.cartlc.tracker.fresh.ui.app.TBApplication
 import com.cartlc.tracker.fresh.ui.app.factory.FactoryViewHelper
-import com.cartlc.tracker.fresh.ui.common.DialogNavigator
-import com.cartlc.tracker.fresh.ui.common.FragmentHelper
-import com.cartlc.tracker.fresh.ui.common.ScreenNavigator
+import com.cartlc.tracker.fresh.ui.common.*
 import com.cartlc.tracker.ui.util.helper.DialogHelper
 
 open class BoundAct(
@@ -46,6 +46,16 @@ open class BoundAct(
 
     val screenNavigator: ScreenNavigator
         get() = ScreenNavigator(act)
+
+    val updateAppUseCase: UpdateAppUseCase by lazy {
+        with(componentRoot) {
+            UpdateAppUseCaseImpl(act, messageHandler, prefHelper, deviceHelper)
+        }
+    }
+
+    val permissionUseCase: PermissionUseCase by lazy {
+        PermissionUseCaseImpl(act)
+    }
 
     open fun bindObserver(observer: LifecycleObserver): LifecycleObserver {
         (act as LifecycleOwner).lifecycle.addObserver(observer)

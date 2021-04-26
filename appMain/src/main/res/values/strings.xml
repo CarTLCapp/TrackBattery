@@ -20,6 +20,7 @@
     <string name="btn_later">Later</string>
     <string name="btn_stop">Stop Showing</string>
     <string name="btn_change">Change Company</string>
+    <string name="btn_update">Update</string>
 
     <string name="entry_hint_tech_code">code</string>
     <string name="entry_hint_notes">Add any notes here</string>
@@ -74,11 +75,14 @@
     <string name="title_photo">1 Photo</string>
     <string name="title_photos">%d of %d Photos</string>
     <string name="title_partial_install_reason">Reason:</string>
+    <string name="title_update">Update to latest Fleet TLC App</string>
 
     <string name="prompt_custom_photo_1">Take one image for %s</string>
     <string name="prompt_custom_photo_N">Take %d images for %s</string>
     <string name="prompt_custom_photo_more">Take %d more images for %s</string>
     <string name="prompt_notes">Enter notes for %s</string>
+
+    <string name="msg_update_available">An APP update is available.</string>
 
     <string name="error_need_a_truck_number">Need a truck number</string>
     <string name="error_cannot_take_picture">Cannot take picture</string>
@@ -135,6 +139,7 @@
     <string name="perm_read_external_storage">Grant external read storage permission to help storage uploaded files.</string>
     <string name="perm_write_external_storage">Grant external write storage permission to help storage uploaded files.</string>
     <string name="perm_location">Grant location permission to help creating a new project easier.</string>
+    <string name="perm_install_packages">Grant ability for this app to update itself.</string>
 
     <string name="confirm_title">Confirmation Checklist</string>
     <string name="confirm_question_1">Is the truck clean and trash picked up?</string>

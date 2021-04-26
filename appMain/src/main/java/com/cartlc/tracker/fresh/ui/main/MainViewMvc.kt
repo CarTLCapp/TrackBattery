@@ -18,6 +18,7 @@ interface MainViewMvc : ObservableViewMvc<MainViewMvc.Listener> {
     interface Listener {
         val buttonsController: ButtonsController
         fun onAddClicked()
+        fun onUpdateClicked()
     }
 
     enum class FragmentType {
@@ -34,6 +35,7 @@ interface MainViewMvc : ObservableViewMvc<MainViewMvc.Listener> {
     var fragmentVisible: FragmentType
     var picturesVisible: Boolean
     var addButtonVisible: Boolean
+    var updateVisible: Boolean
     var customProgress: String?
 
     val titleViewMvc: TitleViewMvc

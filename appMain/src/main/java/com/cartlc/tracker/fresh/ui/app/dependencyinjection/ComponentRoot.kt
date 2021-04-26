@@ -30,7 +30,6 @@ import com.cartlc.tracker.fresh.ui.app.factory.FactoryViewMvc
 import com.cartlc.tracker.fresh.ui.common.BitmapHelper
 import com.cartlc.tracker.fresh.ui.common.ContextWrapper
 import com.cartlc.tracker.fresh.ui.common.DeviceHelper
-import com.cartlc.tracker.fresh.ui.common.PermissionHelper
 
 class ComponentRoot(
         app: Application,
@@ -49,7 +48,6 @@ class ComponentRoot(
     private val schedulerPlan: SchedulerPlan by lazy { SchedulerPlanImpl() }
     val factoryController: FactoryController by lazy { FactoryController(dcRx, schedulerPlan) }
     val eventController: EventController by lazy { EventController() }
-    val permissionHelper = PermissionHelper(app)
     val deviceHelper = DeviceHelper(app)
     val bitmapHelper = BitmapHelper()
     val alarmController: AlarmController by lazy { AlarmController(app, repo) }

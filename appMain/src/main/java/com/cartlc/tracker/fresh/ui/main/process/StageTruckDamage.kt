@@ -54,7 +54,8 @@ class StageTruckDamage(
                     buttonsController.centerText = messageHandler.getString(StringMessage.btn_another)
                 } else {
                     taskPicture.dispatchPictureRequest()
-                }            } else {
+                }
+            } else {
                 if (!hasTruckDamageValue) {
                     if (showToast) {
                         screenNavigator.showToast(messageHandler.getString(StringMessage.truck_damage_enter))

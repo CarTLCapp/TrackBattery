@@ -48,7 +48,7 @@ sealed class StringMessage(
     object title_uploaded_: StringMessage(R.string.title_uploaded_)
     object title_uploaded_done: StringMessage(R.string.title_uploaded_done)
     object title_saved_: StringMessage(R.string.title_saved_)
-
+    object title_update: StringMessage(R.string.title_update)
     object truck_number_request: StringMessage(R.string.truck_number_request)
     object truck_number_enter: StringMessage(R.string.truck_number_enter)
     object truck_number_hint: StringMessage(R.string.truck_number_hint)

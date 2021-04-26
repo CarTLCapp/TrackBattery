@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- InstaBug: -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -80,7 +81,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.cartcl.tracker.fileprovider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
