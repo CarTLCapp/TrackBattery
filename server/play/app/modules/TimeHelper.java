@@ -40,29 +40,8 @@ public class TimeHelper {
         return getFormat(TIME_FORMAT, time_zone).format(entry_time);
     }
 
-    /**
-     * @param entry_time value of the device.
-     * @param time_zone  value of the time zone on the device.
-     * @return the Date value adjusted within the server's time zone for the passed entry_time and time_zone.
-     */
-    public long getTimeAdjustedToServerTimeZone(Date entry_time, String time_zone) {
-        if (entry_time == null) {
-            return 0;
-        }
-        TimeZone tz = getTimeZone(time_zone);
-        if (tz != null) {
-            long offset = tz.getOffset(Calendar.ZONE_OFFSET);
-            return entry_time.getTime() + offset;
-        }
-        return entry_time.getTime();
-    }
-
     private SimpleDateFormat getFormat(String the_format, String time_zone) {
         SimpleDateFormat format = new SimpleDateFormat(the_format);
-        TimeZone tz = getTimeZone(time_zone);
-        if (tz != null) {
-            format.setTimeZone(tz);
-        }
         return format;
     }
 

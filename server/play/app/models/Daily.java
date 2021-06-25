@@ -181,13 +181,4 @@ public class Daily {
         return dates;
     }
 
-
-    /**
-     * This is very confusing but the entry_time is the value against the time_zone that it was entered
-     * in according to the tablet's time. Not the current server's time.
-     */
-    public long getTimeAdjustedToServerTimeZone(Entry entry) {
-        return timeHelper.getTimeAdjustedToServerTimeZone(entry.entry_time, entry.time_zone);
-    }
-
 }

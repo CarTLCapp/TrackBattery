@@ -33,3 +33,5 @@ javacOptions ++= Seq(
   "-Xlint:deprecation",
   "-Xlint:unchecked"
 )
+
+enablePlugins(AndroidApp)
